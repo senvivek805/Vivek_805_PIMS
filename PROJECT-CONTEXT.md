@@ -339,3 +339,16 @@ notepad PROJECT-CONTEXT.md
 - [ ] Budget Reports (Fund Utilization, Project-wise)
 - [ ] Bill Payment Tracking
 - [ ] Service Completion Module
+
+## ✅ Aaj Ka Kaam (13 Oct 2026)
+
+### Git + GitHub Setup
+- [x] Git init + `.gitignore` + `.env.example`
+- [x] GitHub repo (private): senvivek805/Vivek_805_PIMS
+- [x] 3 commits pushed
+
+### Budget Overview + Charts
+- [x] Budget Overview page (FY-wise, Head-wise, Project-wise)
+- [x] Bar chart + Pie chart (Recharts)
+- [x] 404 fix — Budget moved to standalone menu
+- [x] `/budget` → `/budget/overview` redirect
