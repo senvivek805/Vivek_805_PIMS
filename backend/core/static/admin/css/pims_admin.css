@@ -1,0 +1,1420 @@
+/* ============================================
+   PIMS Admin — Neumorphism Theme
+   ============================================ */
+
+:root {
+  --neo-bg: #e0e5ec;
+  --neo-shadow-dark: #b8bcc2;
+  --neo-shadow-light: #ffffff;
+  --neo-text: #1e293b;
+  --neo-text-muted: #64748b;
+  --neo-primary: #4f6df5;
+  --neo-primary-dark: #6366f1;
+  --neo-success: #10b981;
+  --neo-danger: #ef4444;
+  --neo-warning: #f59e0b;
+}
+
+/* ---------- Base ---------- */
+body {
+  background: var(--neo-bg) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  color: var(--neo-text) !important;
+}
+
+body, input, select, textarea, button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* ---------- Header ---------- */
+#header {
+  background: var(--neo-bg) !important;
+  color: var(--neo-text) !important;
+  box-shadow: 0 6px 16px var(--neo-shadow-dark), 0 -6px 16px var(--neo-shadow-light) !important;
+  padding: 14px 24px !important;
+  border-bottom: none !important;
+}
+
+#header a:link, #header a:visited {
+  color: var(--neo-text) !important;
+  font-weight: 600;
+}
+
+#branding h1 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  color: var(--neo-text) !important;
+}
+
+#branding h1 a {
+  color: var(--neo-primary) !important;
+}
+
+#user-tools {
+  font-size: 13px !important;
+  color: var(--neo-text-muted) !important;
+}
+
+#user-tools a {
+  border-bottom: 1px solid rgba(79, 109, 245, 0.4);
+  padding-bottom: 2px;
+  color: var(--neo-primary) !important;
+  font-weight: 500;
+}
+
+#user-tools a:hover {
+  border-bottom-color: var(--neo-primary);
+}
+
+/* ---------- Breadcrumbs ---------- */
+div.breadcrumbs {
+  background: var(--neo-bg) !important;
+  color: var(--neo-text-muted) !important;
+  padding: 12px 24px !important;
+  border-bottom: none !important;
+  box-shadow: inset 0 4px 8px rgba(184, 188, 194, 0.3) !important;
+}
+
+div.breadcrumbs a {
+  color: var(--neo-primary) !important;
+  font-weight: 600;
+}
+
+/* ---------- Modules/Cards ---------- */
+.module {
+  background: var(--neo-bg) !important;
+  border-radius: 20px !important;
+  box-shadow: 12px 12px 24px var(--neo-shadow-dark), -12px -12px 24px var(--neo-shadow-light) !important;
+  border: none !important;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.module h2, .module caption, .inline-group h2 {
+  background: var(--neo-bg) !important;
+  color: var(--neo-text) !important;
+  padding: 16px 20px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(184, 188, 194, 0.3);
+}
+
+/* ---------- Content ---------- */
+#content {
+  padding: 24px !important;
+}
+
+#content h1 {
+  color: var(--neo-text) !important;
+  font-weight: 700 !important;
+  font-size: 28px !important;
+  margin-bottom: 24px;
+}
+
+#content-related {
+  background: var(--neo-bg) !important;
+  border-radius: 20px !important;
+  padding: 20px !important;
+  box-shadow: 12px 12px 24px var(--neo-shadow-dark), -12px -12px 24px var(--neo-shadow-light) !important;
+}
+
+#content-related h3 {
+  color: var(--neo-text) !important;
+  font-weight: 700 !important;
+}
+
+/* ---------- Dashboard Index ---------- */
+.dashboard .module table th {
+  background: transparent !important;
+  color: var(--neo-text) !important;
+}
+
+.dashboard .module table td a {
+  color: var(--neo-primary) !important;
+  font-weight: 600;
+}
+
+.dashboard .module table td a:hover {
+  color: var(--neo-primary-dark) !important;
+}
+
+/* ---------- Tables ---------- */
+#result_list {
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: none !important;
+}
+
+#result_list thead th {
+  background: var(--neo-bg) !important;
+  color: var(--neo-text) !important;
+  font-weight: 700 !important;
+  padding: 14px 12px !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(184, 188, 194, 0.4);
+}
+
+#result_list thead th a {
+  color: var(--neo-text) !important;
+}
+
+#result_list tbody tr {
+  background: var(--neo-bg) !important;
+  border-bottom: 1px solid rgba(184, 188, 194, 0.2);
+}
+
+#result_list tbody tr:hover {
+  background: rgba(79, 109, 245, 0.05) !important;
+  box-shadow: inset 0 0 20px rgba(79, 109, 245, 0.08);
+}
+
+#result_list tbody td {
+  padding: 12px 10px !important;
+  color: var(--neo-text) !important;
+  font-size: 13px;
+}
+
+/* ---------- Buttons ---------- */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  background: linear-gradient(135deg, var(--neo-primary) 0%, var(--neo-primary-dark) 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 20px !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 6px 6px 14px var(--neo-shadow-dark), -6px -6px 14px var(--neo-shadow-light),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover {
+  background: linear-gradient(135deg, var(--neo-primary-dark) 0%, var(--neo-primary) 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 8px 8px 18px var(--neo-shadow-dark), -8px -8px 18px var(--neo-shadow-light),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.button.default, input[type=submit].default, .submit-row input.default {
+  background: linear-gradient(135deg, var(--neo-success) 0%, #059669 100%) !important;
+}
+
+.button.default:hover {
+  background: linear-gradient(135deg, #059669 0%, var(--neo-success) 100%) !important;
+}
+
+/* ---------- Delete Button ---------- */
+.deletelink, a.deletelink {
+  background: linear-gradient(135deg, var(--neo-danger) 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 10px 20px !important;
+  font-weight: 700 !important;
+  box-shadow: 6px 6px 14px var(--neo-shadow-dark), -6px -6px 14px var(--neo-shadow-light),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.deletelink:hover {
+  background: linear-gradient(135deg, #dc2626 0%, var(--neo-danger) 100%) !important;
+  transform: translateY(-2px);
+}
+
+/* ---------- Add/Change Links ---------- */
+.addlink, .changelink, a.addlink, a.changelink {
+  color: var(--neo-primary) !important;
+  font-weight: 600;
+}
+
+/* ---------- Form Fields ---------- */
+input[type=text], input[type=password], input[type=email], input[type=number],
+input[type=url], input[type=tel], input[type=date], input[type=datetime-local],
+input[type=time], select, textarea {
+  background: var(--neo-bg) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  color: var(--neo-text) !important;
+  box-shadow: inset 4px 4px 8px var(--neo-shadow-dark), inset -4px -4px 8px var(--neo-shadow-light) !important;
+  transition: all 0.2s ease;
+  outline: none !important;
+  min-width: 260px !important;
+}
+
+input[type=text]:focus, input[type=password]:focus, input[type=email]:focus,
+input[type=number]:focus, input[type=url]:focus, input[type=tel]:focus,
+select:focus, textarea:focus, input[type=date]:focus {
+  box-shadow: inset 4px 4px 8px var(--neo-shadow-dark),
+    inset -4px -4px 8px var(--neo-shadow-light),
+    0 0 0 3px rgba(79, 109, 245, 0.15) !important;
+}
+
+/* Labels */
+.form-row label, .aligned label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--neo-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 6px !important;
+}
+
+.required label::after, label.required::after {
+  color: var(--neo-danger) !important;
+}
+
+.form-row .help, .aligned .help {
+  font-size: 12px !important;
+  color: var(--neo-text-muted) !important;
+  margin-top: 6px;
+}
+
+/* Checkbox */
+input[type=checkbox] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  accent-color: var(--neo-primary);
+  cursor: pointer;
+}
+
+/* ---------- Fieldset / Collapse ---------- */
+fieldset {
+  border-radius: 16px !important;
+  border: none !important;
+  background: var(--neo-bg) !important;
+  padding: 20px !important;
+  margin-bottom: 20px;
+  box-shadow: inset 2px 2px 4px rgba(184, 188, 194, 0.3);
+}
+
+/* ---------- Inline Group ---------- */
+.inline-group {
+  background: var(--neo-bg) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-shadow: 8px 8px 16px var(--neo-shadow-dark), -8px -8px 16px var(--neo-shadow-light) !important;
+  border: none !important;
+}
+
+/* ---------- Messages ---------- */
+.messagelist li {
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 12px;
+  box-shadow: 4px 4px 8px var(--neo-shadow-dark), -4px -4px 8px var(--neo-shadow-light);
+}
+
+.messagelist li.success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #065f46 !important;
+  border-left: 4px solid var(--neo-success);
+}
+
+.messagelist li.error {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #991b1b !important;
+  border-left: 4px solid var(--neo-danger);
+}
+
+.messagelist li.warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #92400e !important;
+  border-left: 4px solid var(--neo-warning);
+}
+
+/* ---------- Login Page ---------- */
+body.login {
+  background: var(--neo-bg) !important;
+  min-height: 100vh;
+}
+
+.login #container {
+  background: var(--neo-bg) !important;
+  border-radius: 28px !important;
+  box-shadow: 20px 20px 60px var(--neo-shadow-dark), -20px -20px 60px var(--neo-shadow-light) !important;
+  padding: 40px !important;
+  margin: 80px auto !important;
+  border: none !important;
+  max-width: 420px;
+}
+
+.login #header {
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: center;
+  padding: 0 0 20px 0 !important;
+}
+
+.login #header h1 {
+  color: var(--neo-text) !important;
+  font-size: 28px !important;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.login #header h1 a {
+  color: var(--neo-primary) !important;
+}
+
+.login .form-row {
+  padding: 0 !important;
+}
+
+.login .form-row label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--neo-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login input[type=text], .login input[type=password] {
+  width: 100% !important;
+  min-width: 100% !important;
+  padding: 14px 16px !important;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.login .submit-row {
+  background: transparent !important;
+  padding: 0 !important;
+  margin-top: 20px;
+}
+
+.login .submit-row input {
+  width: 100% !important;
+  padding: 14px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px;
+}
+
+/* ---------- Pagination ---------- */
+.paginator {
+  background: var(--neo-bg) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  box-shadow: inset 3px 3px 6px var(--neo-shadow-dark), inset -3px -3px 6px var(--neo-shadow-light);
+  margin: 20px 0;
+}
+
+.paginator a:link, .paginator a:visited {
+  color: var(--neo-primary) !important;
+  font-weight: 600;
+}
+
+/* ---------- Filters (Right Sidebar) ---------- */
+#changelist-filter {
+  background: var(--neo-bg) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-shadow: 8px 8px 16px var(--neo-shadow-dark), -8px -8px 16px var(--neo-shadow-light);
+  border: none !important;
+}
+
+#changelist-filter h2 {
+  background: transparent !important;
+  color: var(--neo-text) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid rgba(184, 188, 194, 0.3);
+}
+
+#changelist-filter h3 {
+  font-size: 13px !important;
+  font-weight: 600;
+  color: var(--neo-text) !important;
+  margin-top: 12px;
+}
+
+#changelist-filter li.selected a {
+  color: var(--neo-primary) !important;
+  font-weight: 700;
+}
+
+/* ---------- Actions Bar ---------- */
+.actions {
+  background: var(--neo-bg) !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  box-shadow: inset 3px 3px 6px var(--neo-shadow-dark), inset -3px -3px 6px var(--neo-shadow-light);
+  border: none !important;
+  margin-bottom: 16px;
+}
+
+.actions select {
+  min-width: 200px !important;
+  margin-right: 10px;
+}
+
+/* ---------- Submit Row ---------- */
+.submit-row {
+  background: var(--neo-bg) !important;
+  padding: 20px !important;
+  border-radius: 16px !important;
+  box-shadow: 8px 8px 16px var(--neo-shadow-dark), -8px -8px 16px var(--neo-shadow-light);
+  border: none !important;
+  margin-top: 24px;
+}
+
+/* ---------- Calendar / Date Picker ---------- */
+.calendarbox, .clockbox {
+  background: var(--neo-bg) !important;
+  border-radius: 16px !important;
+  box-shadow: 12px 12px 24px var(--neo-shadow-dark), -12px -12px 24px var(--neo-shadow-light) !important;
+  border: none !important;
+  padding: 8px;
+}
+
+.calendar caption {
+  background: var(--neo-primary) !important;
+  color: white !important;
+  border-radius: 8px;
+}
+
+.calendar td a {
+  border-radius: 6px !important;
+  transition: all 0.2s ease;
+}
+
+.calendar td a:hover {
+  background: var(--neo-primary) !important;
+  color: white !important;
+}
+
+/* ---------- Related Widgets (+, edit, delete icons) ---------- */
+.related-widget-wrapper-link {
+  padding: 6px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.related-widget-wrapper-link:hover {
+  background: var(--neo-bg);
+  box-shadow: 3px 3px 6px var(--neo-shadow-dark), -3px -3px 6px var(--neo-shadow-light);
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neo-bg);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neo-shadow-dark);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ---------- Error List ---------- */
+.errorlist {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: var(--neo-danger) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 12px;
+  font-weight: 600;
+  list-style: none;
+  margin-top: 6px;
+  border-left: 3px solid var(--neo-danger);
+}
+
+.errorlist li {
+  margin: 0;
+}
+
+/* ---------- Help Text with Icon ---------- */
+.help-icon {
+  color: var(--neo-primary);
+  margin-left: 4px;
+}
+
+/* ---------- Object Tools (Top Right of Change Page) ---------- */
+.object-tools {
+  margin-bottom: 16px;
+}
+
+.object-tools a {
+  background: linear-gradient(135deg, var(--neo-primary) 0%, var(--neo-primary-dark) 100%) !important;
+  border-radius: 12px !important;
+  padding: 10px 18px !important;
+  font-weight: 600 !important;
+  box-shadow: 6px 6px 14px var(--neo-shadow-dark), -6px -6px 14px var(--neo-shadow-light) !important;
+}
+
+.object-tools a:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--neo-primary-dark) 0%, var(--neo-primary) 100%) !important;
+}
+
+/* ---------- Select All / Clear All ---------- */
+.toggle-nav-sidebar {
+  background: var(--neo-bg) !important;
+  box-shadow: 4px 4px 8px var(--neo-shadow-dark), -4px -4px 8px var(--neo-shadow-light);
+  border-radius: 8px;
+  border: none !important;
+}
+
+/* ---------- Success Message after Save ---------- */
+.success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #065f46 !important;
+}
+
+
+/* ============================================
+   FIXES — Text Colors + Attractive Headers
+   ============================================ */
+
+/* ---------- Module Headers — Colorful Gradient ---------- */
+.module h2,
+.module caption,
+.inline-group h2 {
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  padding: 16px 20px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(79, 109, 245, 0.3);
+}
+
+.module h2 a,
+.module caption a {
+  color: #ffffff !important;
+}
+
+/* ---------- Recent Actions Card ---------- */
+#content-related .module h2,
+#content-related h2 {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%) !important;
+  color: #ffffff !important;
+  padding: 14px 18px !important;
+  border-radius: 12px 12px 0 0 !important;
+  font-weight: 700 !important;
+}
+
+#content-related h3 {
+  color: #4f6df5 !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  padding: 12px 16px;
+  background: rgba(79, 109, 245, 0.08);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+/* ---------- Module Table Links ---------- */
+.module table td a,
+.module table th a {
+  color: #1e293b !important;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.module table td a:hover {
+  color: #4f6df5 !important;
+  font-weight: 600;
+}
+
+/* Add / Change Links — Colorful */
+.module table td a.addlink {
+  color: #10b981 !important;
+  font-weight: 700 !important;
+  font-size: 12px;
+}
+
+.module table td a.addlink:hover {
+  color: #059669 !important;
+}
+
+.module table td a.changelink {
+  color: #f59e0b !important;
+  font-weight: 700 !important;
+  font-size: 12px;
+}
+
+.module table td a.changelink:hover {
+  color: #d97706 !important;
+}
+
+/* ---------- Fix General Text Colors ---------- */
+body,
+p,
+span,
+div,
+td,
+th,
+label,
+h1, h2, h3, h4, h5, h6 {
+  color: #1e293b !important;
+}
+
+/* ---------- Content Headings ---------- */
+#content h1 {
+  color: #1e293b !important;
+  font-weight: 800 !important;
+  font-size: 28px !important;
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+}
+
+/* ---------- Breadcrumbs Enhanced ---------- */
+div.breadcrumbs {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  color: #475569 !important;
+  padding: 14px 24px !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+  font-weight: 500;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+div.breadcrumbs a {
+  color: #4f6df5 !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+div.breadcrumbs a:hover {
+  color: #6366f1 !important;
+  text-decoration: underline;
+}
+
+/* ---------- Header Branding Enhanced ---------- */
+#header {
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(79, 109, 245, 0.3) !important;
+  padding: 16px 24px !important;
+}
+
+#branding h1 {
+  color: #ffffff !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#branding h1 a {
+  color: #ffffff !important;
+  text-decoration: none;
+}
+
+#user-tools {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+#user-tools a {
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding-bottom: 2px;
+  font-weight: 600;
+}
+
+#user-tools a:hover {
+  border-bottom-color: #ffffff;
+}
+
+/* ---------- Recent Actions / Sidebar Box ---------- */
+#content-related {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-radius: 20px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 12px 12px 24px #b8bcc2, -12px -12px 24px #ffffff !important;
+}
+
+#content-related .module {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+#content-related .actionlist li {
+  color: #475569 !important;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+#content-related .actionlist li a {
+  color: #4f6df5 !important;
+  font-weight: 600;
+}
+
+/* ---------- Table Headers Enhanced ---------- */
+#result_list thead th {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  color: #1e293b !important;
+  font-weight: 800 !important;
+  padding: 14px 12px !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #cbd5e1 !important;
+}
+
+#result_list thead th a {
+  color: #1e293b !important;
+  font-weight: 800;
+}
+
+/* ---------- Table Rows ---------- */
+#result_list tbody td,
+#result_list tbody th {
+  color: #1e293b !important;
+  padding: 12px 10px !important;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+#result_list tbody tr:hover {
+  background: linear-gradient(90deg, rgba(79, 109, 245, 0.08) 0%, rgba(99, 102, 241, 0.04) 100%) !important;
+}
+
+/* ---------- Form Inputs — Better Look ---------- */
+input[type=text],
+input[type=password],
+input[type=email],
+input[type=number],
+input[type=url],
+input[type=tel],
+input[type=date],
+textarea,
+select {
+  background: #e0e5ec !important;
+  color: #1e293b !important;
+  font-weight: 500;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ---------- Fieldset Headers ---------- */
+fieldset h2 {
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ---------- Success / Error / Warning Icons ---------- */
+.messagelist li.success::before {
+  content: "✅ ";
+  font-size: 16px;
+}
+
+.messagelist li.error::before {
+  content: "❌ ";
+  font-size: 16px;
+}
+
+.messagelist li.warning::before {
+  content: "⚠️ ";
+  font-size: 16px;
+}
+
+/* ---------- Add/Change Button Icons ---------- */
+.module table td a.addlink::before {
+  content: "➕ ";
+  font-weight: 900;
+}
+
+.module table td a.changelink::before {
+  content: "✏️ ";
+}
+
+/* ---------- Card Hover Effect ---------- */
+.module:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* ---------- Better Focus Ring ---------- */
+*:focus {
+  outline: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  box-shadow: 0 0 0 3px rgba(79, 109, 245, 0.2) !important;
+}
+
+/* ---------- Link Colors Everywhere ---------- */
+a:link, a:visited {
+  color: #4f6df5 !important;
+}
+
+a:hover {
+  color: #6366f1 !important;
+}
+
+/* ---------- Selected Filter Highlight ---------- */
+#changelist-filter li.selected {
+  background: linear-gradient(135deg, rgba(79, 109, 245, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%) !important;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 2px 0;
+}
+
+#changelist-filter li.selected a {
+  color: #4f6df5 !important;
+  font-weight: 800 !important;
+}
+
+/* ---------- Pagination Enhanced ---------- */
+.paginator a:link,
+.paginator a:visited {
+  color: #4f6df5 !important;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.paginator a:hover {
+  background: #4f6df5 !important;
+  color: #ffffff !important;
+}
+
+.paginator .this-page {
+  background: #4f6df5 !important;
+  color: #ffffff !important;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* ---------- Save/Delete Buttons Row ---------- */
+.submit-row input[type=submit] {
+  min-width: 140px;
+}
+
+/* ---------- Login Page Attractive ---------- */
+body.login {
+  background: linear-gradient(135deg, #e0e5ec 0%, #d4dae3 100%) !important;
+}
+
+.login #container {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+}
+
+.login #header h1 {
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+.login .submit-row input {
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px;
+}
+
+.login .submit-row input:hover {
+  background: linear-gradient(135deg, #6366f1 0%, #4f6df5 100%) !important;
+}
+
+
+/* ============================================
+   FIX — Text Cut-off Issues
+   ============================================ */
+
+/* ---------- Select Dropdowns — Full Height ---------- */
+select {
+  height: auto !important;
+  min-height: 42px !important;
+  padding: 10px 40px 10px 14px !important;
+  line-height: 1.5 !important;
+  font-size: 14px !important;
+  background-position: right 12px center !important;
+  background-size: 14px !important;
+}
+
+select option {
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* ---------- Text Inputs — Full Height ---------- */
+input[type=text],
+input[type=password],
+input[type=email],
+input[type=number],
+input[type=url],
+input[type=tel],
+input[type=date],
+input[type=datetime-local],
+input[type=time],
+textarea {
+  height: auto !important;
+  min-height: 42px !important;
+  padding: 10px 14px !important;
+  line-height: 1.5 !important;
+  font-size: 14px !important;
+}
+
+/* ---------- Textarea ---------- */
+textarea {
+  min-height: 100px !important;
+}
+
+/* ---------- Labels — Fix Cut-off ---------- */
+.form-row label,
+.aligned label,
+label {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 0 8px 4px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  height: auto !important;
+  min-height: auto !important;
+}
+
+/* ---------- Form Rows — Better Spacing ---------- */
+.form-row {
+  padding: 12px 0 !important;
+  overflow: visible !important;
+  border-bottom: none !important;
+}
+
+.form-row .field-box {
+  padding-right: 20px;
+}
+
+/* ---------- Related Widget Wrapper — No Overlap ---------- */
+.related-widget-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.related-widget-wrapper select {
+  flex: 1 !important;
+  min-width: 200px !important;
+}
+
+.related-widget-wrapper-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 36px !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  background: #e0e5ec;
+  box-shadow: 3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff;
+  transition: all 0.2s ease;
+}
+
+.related-widget-wrapper-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 4px 4px 8px #b8bcc2, -4px -4px 8px #ffffff;
+}
+
+/* ---------- Date/Time Shortcuts (Today/Now) ---------- */
+.datetimeshortcuts {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+  font-size: 12px !important;
+}
+
+.datetimeshortcuts a {
+  color: #4f6df5 !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.datetimeshortcuts a:hover {
+  background: rgba(79, 109, 245, 0.1) !important;
+  text-decoration: none;
+}
+
+/* ---------- Checkbox Rows ---------- */
+.form-row .checkbox-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.form-row .checkbox-row label {
+  padding: 0 !important;
+  text-transform: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+/* ---------- Help Text — Full Visible ---------- */
+.help, .form-row .help {
+  display: block !important;
+  font-size: 12px !important;
+  color: #64748b !important;
+  padding: 6px 4px 0 !important;
+  line-height: 1.5 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+}
+
+/* ---------- Fieldset — No Overlap ---------- */
+fieldset.module {
+  padding: 20px !important;
+  overflow: visible !important;
+}
+
+fieldset.module .form-row:last-child {
+  border-bottom: none !important;
+}
+
+/* ---------- Aligned Form (Change Form) ---------- */
+.form-row .field-box,
+.aligned .field-box {
+  float: none !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+/* ---------- Input Groups — No Squeeze ---------- */
+.form-row .flex-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+}
+
+/* ---------- Calendar/Clock Icons ---------- */
+.calendarbox, .clockbox {
+  z-index: 9999 !important;
+}
+
+/* ---------- VDateField / VTimeField ---------- */
+.vDateField, .vTimeField {
+  min-width: 130px !important;
+  padding-right: 36px !important;
+}
+
+/* ---------- Textarea with Counter ---------- */
+textarea + .help {
+  padding-top: 4px !important;
+}
+
+/* ---------- Error List — Full Visible ---------- */
+.errorlist {
+  display: block !important;
+  padding: 8px 12px !important;
+  margin-top: 6px !important;
+  line-height: 1.5 !important;
+  overflow: visible !important;
+}
+
+/* ---------- Remove Text Overflow ---------- */
+* {
+  text-overflow: ellipsis;
+}
+
+input, select, textarea, label, .help, p, span, td, th {
+  text-overflow: clip !important;
+}
+
+/* ---------- Collapse Fieldset — Full Text ---------- */
+fieldset.collapse {
+  overflow: visible !important;
+}
+
+/* ---------- Row Content Vertical Align ---------- */
+.form-row {
+  display: block !important;
+  clear: both !important;
+}
+
+/* ---------- Fix Select2 Style Dropdowns ---------- */
+.select2-container {
+  min-width: 250px !important;
+}
+
+.select2-selection {
+  min-height: 42px !important;
+  padding: 8px 12px !important;
+}
+
+.select2-selection__rendered {
+  line-height: 26px !important;
+  font-size: 14px !important;
+}
+
+
+/* ============================================
+   FIX — Object Tools (Top Right Buttons)
+   ============================================ */
+
+/* ---------- Object Tools (Add / History Buttons) ---------- */
+.object-tools {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  float: right !important;
+  list-style: none !important;
+}
+
+.object-tools li {
+  list-style: none !important;
+  display: inline-block !important;
+  margin-left: 8px !important;
+}
+
+.object-tools a:link,
+.object-tools a:visited,
+.object-tools a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  background: linear-gradient(135deg, #4f6df5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  letter-spacing: 0.3px !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  border: none !important;
+  box-shadow: 6px 6px 14px #b8bcc2, -6px -6px 14px #ffffff,
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.3s ease !important;
+  min-width: auto !important;
+  white-space: nowrap !important;
+}
+
+.object-tools a:hover,
+.object-tools a:focus {
+  background: linear-gradient(135deg, #6366f1 0%, #4f6df5 100%) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 8px 8px 18px #b8bcc2, -8px -8px 18px #ffffff,
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ---------- Add Link (Green) ---------- */
+.object-tools a.addlink {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  padding-left: 42px !important;
+  position: relative !important;
+}
+
+.object-tools a.addlink::before {
+  content: "➕" !important;
+  position: absolute !important;
+  left: 16px !important;
+  font-size: 14px !important;
+}
+
+.object-tools a.addlink:hover {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+}
+
+/* ---------- History Link (Secondary) ---------- */
+.object-tools a.historylink {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ---------- Viewsite Link (Info) ---------- */
+.object-tools a.viewsitelink {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================
+   FIX — Action Bar (Run Button)
+   ============================================ */
+
+/* ---------- Action Bar Container ---------- */
+.actions {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 20px !important;
+  border: none !important;
+  box-shadow: inset 3px 3px 6px rgba(184, 188, 194, 0.5),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.8) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* ---------- "ACTION:" Label ---------- */
+.actions label {
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  color: #1e293b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ---------- Action Select Dropdown ---------- */
+.actions select {
+  min-width: 240px !important;
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 8px 36px 8px 12px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  box-shadow: 3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff !important;
+  border: none !important;
+  height: auto !important;
+  min-height: 40px !important;
+}
+
+/* ---------- "Run" Button ---------- */
+.actions button,
+.actions input[type=submit] {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  padding: 10px 22px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  box-shadow: 5px 5px 12px #b8bcc2, -5px -5px 12px #ffffff,
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.actions button:hover,
+.actions input[type=submit]:hover {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 7px 7px 16px #b8bcc2, -7px -7px 16px #ffffff !important;
+}
+
+/* ---------- "X of Y selected" Counter ---------- */
+.actions .action-counter,
+.actions span.action-counter {
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  color: #4f6df5 !important;
+  padding: 6px 12px !important;
+  background: rgba(79, 109, 245, 0.1) !important;
+  border-radius: 8px !important;
+  margin-left: auto !important;
+}
+
+/* ---------- All Selected / Clear ---------- */
+.actions .all,
+.actions .none,
+.actions a {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #4f6df5 !important;
+}
+
+/* ============================================
+   FIX — Search Bar at Top
+   ============================================ */
+
+#changelist-search {
+  background: transparent !important;
+  padding: 0 !important;
+  margin-bottom: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+#changelist-search input[type=text] {
+  min-width: 300px !important;
+  flex: 1 !important;
+  max-width: 500px !important;
+}
+
+#changelist-search input[type=submit] {
+  padding: 10px 24px !important;
+}
+
+/* ============================================
+   FIX — Add Button in "Select ... to change" Page
+   ============================================ */
+
+/* Fix the ADD button at top-right of change list page */
+#changelist .object-tools a,
+.change-list .object-tools a {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================
+   FIX — Breadcrumbs Text Visibility
+   ============================================ */
+
+div.breadcrumbs,
+div.breadcrumbs a {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+div.breadcrumbs a:hover {
+  color: #4f6df5 !important;
+}
