@@ -53,10 +53,9 @@ const menuItems: MenuItem[] = [
     icon: IndianRupee,
     children: [
       { href: "/funds", label: "All Receipts", icon: IndianRupee },
-      { href: "/budget/overview", label: "Budget Overview", icon: Target },
     ],
   },
-  { href: "/budget", label: "Budget", icon: Target },
+  { href: "/budget/overview", label: "Budget Overview", icon: Target },
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/employees", label: "Employees", icon: Users },
   {
