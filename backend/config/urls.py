@@ -34,4 +34,5 @@ urlpatterns = [
     path('api/', include('materials.api.urls')),
     # API — Bills
     path('api/', include('bills.api.urls')),
+    path('api/', include('service_completion.api.urls')),
 ]

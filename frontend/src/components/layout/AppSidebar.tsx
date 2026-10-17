@@ -22,6 +22,7 @@ import {
   ChevronRight,
   PackageCheck,
   PackageMinus,
+  FileCheck,
   Undo2
 } from "lucide-react";
 
@@ -71,6 +72,7 @@ const menuItems: MenuItem[] = [
   },
   { href: "/purchase", label: "Purchase", icon: ShoppingCart },
   { href: "/bills", label: "Bills", icon: FileText },
+  { href: "/services", label: "Service Completions", icon: FileCheck },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
