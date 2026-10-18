@@ -368,3 +368,22 @@ notepad PROJECT-CONTEXT.md
 ### Kal Ka Plan (Pending)
 - [ ] Reports Module (Fund Utilization, Project-wise)
 - [ ] Document Upload + Utilization Certificate (UC)
+## ✅ Aaj Ka Kaam (18 Oct 2026 - Part 2)
+
+### Accounting Logic Fix
+- [x] Form 5 approve hone par FundBreakup ka `spent_amount` ab **Gross Amount** (Base + GST + Other) calculate karke update hota hai, Net Payable nahi.
+- [x] Purane bills ko shell command se re-save karke naya logic apply karwaya.
+
+### Reports Module Complete
+- [x] Fund Utilization Report
+- [x] Bill & Payments Report (Detailed Tax Breakdown, Gross vs Net)
+- [x] Vendor Payments Report
+- [x] Project Summary Report
+
+### Bills List UI Polish
+- [x] Duplicate Vendor Name hataya (agar Recipient aur Vendor same hon).
+- [x] Summary Card aur List me **Gross Amount** clearly dikhne laga hai (Indigo color me).
+
+### Kal Ka Plan (Pending)
+- [ ] Document Upload Module
+- [ ] Utilization Certificate (UC) generation
