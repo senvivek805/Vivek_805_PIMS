@@ -50,3 +50,15 @@ export async function deleteServiceCompletion(id: number): Promise<{ message: st
     }
   );
 }
+export async function updateServiceCompletion(
+  id: number,
+  data: Partial<ServiceCompletion>
+): Promise<ServiceCompletion> {
+  return fetchWithCsrf<ServiceCompletion>(
+    `${API_BASE_URL}/service-completions/${id}/?format=json`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}

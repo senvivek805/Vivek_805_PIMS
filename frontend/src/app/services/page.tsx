@@ -4,36 +4,40 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox, NeoBadge } from "@/components/neumorphism";
-import { Plus, FileCheck, Loader2, AlertCircle, Eye } from "lucide-react";
-import { getServiceCompletions, type ServiceCompletion } from "@/lib/api/serviceCompletion";
+import { Plus, FileCheck, Loader2, AlertCircle, Eye, Pencil, Printer, Trash2 } from "lucide-react";
+import { getServiceCompletions, deleteServiceCompletion, type ServiceCompletion } from "@/lib/api/serviceCompletion";
 
 export default function ServiceCompletionsPage() {
   const [data, setData] = useState<ServiceCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await getServiceCompletions();
-        setData(res.results || []);
-      } catch (err: any) {
-        console.error("Full API Error:", err); // <-- Ye console me print karega
-        
-        // Error ko readable text me convert karo
-        let errorMsg = "Failed to load data";
-        if (typeof err === 'string') errorMsg = err;
-        else if (err?.message) errorMsg = err.message;
-        else if (err?.detail) errorMsg = err.detail;
-        else errorMsg = JSON.stringify(err);
-        
-        setError(errorMsg);
-      } finally {
-        setLoading(false);
-      }
+  async function loadData() {
+    try {
+      const res = await getServiceCompletions();
+      setData(res.results || []);
+    } catch (err: any) {
+      setError(err.message || "Failed to load data");
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm("Are you sure you want to delete this certificate?")) {
+      try {
+        await deleteServiceCompletion(id);
+        // Refresh list after delete
+        setData(data.filter(item => item.id !== id));
+      } catch (err) {
+        alert("Failed to delete certificate.");
+      }
+    }
+  };
 
   return (
     <AppLayout>
@@ -99,18 +103,47 @@ export default function ServiceCompletionsPage() {
                     <tr key={item.id} className="border-b border-slate-200/40 hover:bg-slate-50/50">
                       <td className="p-3 font-bold text-slate-800">{item.certificate_no}</td>
                       <td className="p-3 text-slate-600">{item.po_number}</td>
-                      <td className="p-3 text-slate-600">{item.completion_date}</td>
+                      <td className="p-3 text-slate-600">
+                        {item.completion_date ? item.completion_date.split("-").reverse().join("-") : ""}
+                      </td>
                       <td className="p-3">
                         <NeoBadge variant="primary">
                           {item.status.toUpperCase()}
                         </NeoBadge>
                       </td>
                       <td className="p-3 text-right">
-                        <Link href={`/services/${item.id}`}>
-                          <NeoButton variant="secondary" size="sm" icon={<Eye className="h-4 w-4" />}>
-                            View
-                          </NeoButton>
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          
+                          {/* View Button */}
+                          <Link href={`/services/${item.id}`}>
+                            <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-blue-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all">
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          </Link>
+
+                          {/* Print Button */}
+                          <Link href={`/services/${item.id}/print`}>
+                            <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-purple-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all">
+                              <Printer className="h-4 w-4" />
+                            </button>
+                          </Link>
+
+                          {/* Edit Button */}
+                          <Link href={`/services/${item.id}/edit`}>
+                            <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-amber-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all">
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                          </Link>
+
+                          {/* Delete Button */}
+                          <button 
+                            onClick={() => handleDelete(item.id!)}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-red-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+
+                        </div>
                       </td>
                     </tr>
                   ))}

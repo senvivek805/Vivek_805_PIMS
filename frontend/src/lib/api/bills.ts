@@ -74,7 +74,7 @@ export interface BillEntry {
   item_count?: number;
   created_at?: string;
   updated_at?: string;
-    penalty: string | number;
+  penalty: string | number;
   penalty_applicable?: boolean;
   pbg_security: string | number;
   pbg_applicable?: boolean;

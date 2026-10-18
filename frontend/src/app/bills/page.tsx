@@ -10,7 +10,6 @@ import {
   NeoIconBox,
 } from "@/components/neumorphism";
 import {
-  FileText,
   Plus,
   Search,
   Eye,
@@ -22,7 +21,6 @@ import {
   AlertCircle,
   X,
   AlertTriangle,
-  IndianRupee,
   Building2,
   FolderKanban,
   Receipt,
@@ -119,6 +117,15 @@ export default function BillsPage() {
       maximumFractionDigits: 2,
     })}`;
   }
+  
+  // Calculate Total Gross Amount for the summary card
+  let totalGross = 0;
+  bills.forEach(bill => {
+    const base = Number(bill.bill_amount) || 0;
+    const gst = (Number(bill.cgst_amount) || 0) + (Number(bill.sgst_amount) || 0) + (Number(bill.igst_amount) || 0);
+    const other = Number(bill.other_charges) || 0;
+    totalGross += (base + gst + other);
+  });
 
   const draftCount =
     stats?.status_wise.find((s) => s.status === "draft")?.count || 0;
@@ -187,9 +194,14 @@ export default function BillsPage() {
               <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
                 Total Payable
               </p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 mb-2">
                 {formatAmount(stats.total_payable)}
               </p>
+              <div className="inline-block px-2.5 py-1 rounded-lg bg-indigo-100/60 border border-indigo-200/50">
+                <p className="text-xs font-bold text-indigo-800">
+                  Gross: {formatAmount(totalGross)}
+                </p>
+              </div>
             </NeoCard>
 
             <NeoCard hover>
@@ -311,114 +323,132 @@ export default function BillsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {bills.map((bill) => (
-                <div
-                  key={bill.id}
-                  className="p-4 rounded-2xl transition-all duration-200 hover:shadow-lg"
-                  style={{
-                    background: "#e0e5ec",
-                    boxShadow:
-                      "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-                  }}
-                >
-                  <div className="flex flex-wrap items-start gap-4">
-                    <NeoIconBox color="text-blue-600" size="md">
-                      <Receipt className="h-5 w-5" />
-                    </NeoIconBox>
+              {bills.map((bill) => {
+                // Calculate Gross Amount for display
+                const base = Number(bill.bill_amount) || 0;
+                const gst = (Number(bill.cgst_amount) || 0) + (Number(bill.sgst_amount) || 0) + (Number(bill.igst_amount) || 0);
+                const other = Number(bill.other_charges) || 0;
+                const grossAmount = base + gst + other;
 
-                    <div className="flex-1 min-w-[240px]">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-sm font-bold text-slate-700">
-                          {bill.bill_no}
-                        </span>
-                        <NeoBadge
-                          variant={BILL_STATUS_VARIANTS[bill.status]}
-                          size="sm"
-                        >
-                          {BILL_STATUS_EMOJIS[bill.status]}{" "}
-                          {BILL_STATUS_LABELS[bill.status]}
-                        </NeoBadge>
+                return (
+                  <div
+                    key={bill.id}
+                    className="p-4 rounded-2xl transition-all duration-200 hover:shadow-lg"
+                    style={{
+                      background: "#e0e5ec",
+                      boxShadow:
+                        "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
+                    }}
+                  >
+                    <div className="flex flex-wrap items-start gap-4">
+                      <NeoIconBox color="text-blue-600" size="md">
+                        <Receipt className="h-5 w-5" />
+                      </NeoIconBox>
+
+                      <div className="flex-1 min-w-[240px]">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="text-sm font-bold text-slate-700">
+                            {bill.bill_no}
+                          </span>
+                          <NeoBadge
+                            variant={BILL_STATUS_VARIANTS[bill.status]}
+                            size="sm"
+                          >
+                            {BILL_STATUS_EMOJIS[bill.status]}{" "}
+                            {BILL_STATUS_LABELS[bill.status]}
+                          </NeoBadge>
+                        </div>
+
+                        <p className="text-xs text-slate-500 mb-1">
+                          Doc: {bill.document_no}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            👤 {bill.recipient_name}
+                          </span>
+                          
+                          {/* DUPLICATE FIX: Sirf tab dikhao jab vendor alag ho */}
+                          {bill.vendor_name && bill.vendor_name !== bill.recipient_name && (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />
+                              {bill.vendor_name}
+                            </span>
+                          )}
+                          
+                          {bill.project_code && (
+                            <span className="flex items-center gap-1">
+                              <FolderKanban className="h-3 w-3" />
+                              {bill.project_code}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(bill.bill_date)}
+                          </span>
+                        </div>
                       </div>
 
-                      <p className="text-xs text-slate-500 mb-1">
-                        Doc: {bill.document_no}
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          👤 {bill.recipient_name}
-                        </span>
-                        {bill.vendor_name && (
-                          <span className="flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
-                            {bill.vendor_name}
-                          </span>
+                      <div className="text-right flex flex-col items-end">
+                        <p className="text-xl font-bold text-green-600">
+                          {formatAmount(bill.total_payable)}
+                        </p>
+                        <p className="text-xs text-slate-500 font-semibold mb-1">Total Payable</p>
+                        
+                        {/* Show Gross Amount as a small sub-text */}
+                        {grossAmount > 0 && (
+                        <p className="text-xs font-bold text-indigo-800 bg-indigo-100/60 px-2.5 py-1 rounded-lg mt-1.5 shadow-sm border border-indigo-200/50">
+                        Gross: {formatAmount(grossAmount)}
+                        </p>
                         )}
-                        {bill.project_code && (
-                          <span className="flex items-center gap-1">
-                            <FolderKanban className="h-3 w-3" />
-                            {bill.project_code}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(bill.bill_date)}
-                        </span>
                       </div>
-                    </div>
 
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-green-600">
-                        {formatAmount(bill.total_payable)}
-                      </p>
-                      <p className="text-xs text-slate-500">Total Payable</p>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/bills/${bill.id}`}>
+                          <button
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-blue-600 transition-all hover:scale-110"
+                            style={{
+                              background: "#e0e5ec",
+                              boxShadow:
+                                "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
+                            }}
+                            title="View"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </Link>
 
-                    <div className="flex items-center gap-2">
-                      <Link href={`/bills/${bill.id}`}>
+                        <Link href={`/bills/${bill.id}/edit`}>
+                          <button
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                            style={{
+                              background: "#e0e5ec",
+                              boxShadow:
+                                "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
+                            }}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </Link>
+
                         <button
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-blue-600 transition-all hover:scale-110"
+                          onClick={() => setDeleteTarget(bill)}
+                          className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
                           style={{
                             background: "#e0e5ec",
                             boxShadow:
                               "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
                           }}
-                          title="View"
+                          title="Delete"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                      </Link>
-
-                      <Link href={`/bills/${bill.id}/edit`}>
-                        <button
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
-                          style={{
-                            background: "#e0e5ec",
-                            boxShadow:
-                              "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
-                          }}
-                          title="Edit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                      </Link>
-
-                      <button
-                        onClick={() => setDeleteTarget(bill)}
-                        className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
-                        style={{
-                          background: "#e0e5ec",
-                          boxShadow:
-                            "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
-                        }}
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </NeoCard>

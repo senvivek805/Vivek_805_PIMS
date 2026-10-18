@@ -439,10 +439,11 @@ class BillEntry(BaseModel):
     def _update_fund_breakup(self):
         """
         Form 5 approve hone pe Fund Breakup me spent_amount update karo.
-        Sirf approved/paid status pe karo.
+        Sirf approved/paid status pe karo. (Calculation based on Gross Amount)
         """
         from funds.models import FundBreakup
-        from django.db.models import Sum
+        from django.db.models import Sum, F, Value, DecimalField
+        from django.db.models.functions import Coalesce
 
         if not self.budget_head:
             return
@@ -471,8 +472,16 @@ class BillEntry(BaseModel):
         if self.project:
             approved_bills = approved_bills.filter(project=self.project)
 
+        # Gross Amount = Base + CGST + SGST + IGST + Other Charges
         total_spent = approved_bills.aggregate(
-            total=Sum('total_payable')
+            total=Sum(
+                Coalesce(F('bill_amount'), Value(0)) +
+                Coalesce(F('cgst_amount'), Value(0)) +
+                Coalesce(F('sgst_amount'), Value(0)) +
+                Coalesce(F('igst_amount'), Value(0)) +
+                Coalesce(F('other_charges'), Value(0)),
+                output_field=DecimalField()
+            )
         )['total'] or 0
 
         # Har breakup me spent_amount update karo
