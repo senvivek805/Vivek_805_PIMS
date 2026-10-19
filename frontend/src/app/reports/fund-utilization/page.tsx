@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox } from "@/components/neumorphism";
-import { ArrowLeft, Printer, Loader2, BarChart3 } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, BarChart3, Search } from "lucide-react";
 import { getBudgetOverview, formatCurrency, type BudgetOverviewResponse } from "@/lib/api/funds";
 
 export default function FundUtilizationReportPage() {
   const [data, setData] = useState<BudgetOverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -29,6 +30,25 @@ export default function FundUtilizationReportPage() {
   const handlePrint = () => {
     window.print();
   };
+
+  // Filter Data
+  const filteredProjects = data?.project_wise.filter(proj => 
+    (proj.project_code || "").toLowerCase().includes(search.toLowerCase()) ||
+    (proj.project_name || "").toLowerCase().includes(search.toLowerCase())
+  ) || [];
+
+  // Calculate Grand Totals based on filtered data
+  let totalReceived = 0;
+  let totalAllocated = 0;
+  let totalSpent = 0;
+  let totalBalance = 0;
+
+  filteredProjects.forEach(proj => {
+    totalReceived += proj.received;
+    totalAllocated += proj.allocated;
+    totalSpent += proj.spent;
+    totalBalance += proj.balance;
+  });
 
   return (
     <AppLayout>
@@ -57,6 +77,23 @@ export default function FundUtilizationReportPage() {
           </NeoButton>
         </div>
 
+        {/* Filters (Hide on Print) */}
+        <NeoCard padding="sm" className="print:hidden">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[240px] relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10" />
+              <input
+                type="text"
+                placeholder="Search by Project Code or Name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-11 pl-10 pr-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
+                style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+              />
+            </div>
+          </div>
+        </NeoCard>
+
         {/* Content */}
         {loading ? (
           <div className="flex justify-center py-20 print:hidden">
@@ -76,23 +113,23 @@ export default function FundUtilizationReportPage() {
               <p className="text-sm mt-2">Generated on: {new Date().toLocaleDateString('en-GB')}</p>
             </div>
 
-            {/* Summary Cards (Hide on print, or keep them simple) */}
+            {/* Summary Cards (Hide on print) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden mb-6">
               <NeoCard>
                 <p className="text-xs font-bold text-slate-500 uppercase mb-1">Total Received</p>
-                <p className="text-lg font-bold text-slate-800">{formatCurrency(data.summary.total_received)}</p>
+                <p className="text-lg font-bold text-slate-800">{formatCurrency(totalReceived)}</p>
               </NeoCard>
               <NeoCard>
                 <p className="text-xs font-bold text-slate-500 uppercase mb-1">Total Allocated</p>
-                <p className="text-lg font-bold text-green-600">{formatCurrency(data.summary.total_allocated)}</p>
+                <p className="text-lg font-bold text-green-600">{formatCurrency(totalAllocated)}</p>
               </NeoCard>
               <NeoCard>
                 <p className="text-xs font-bold text-slate-500 uppercase mb-1">Total Spent</p>
-                <p className="text-lg font-bold text-red-600">{formatCurrency(data.summary.total_spent)}</p>
+                <p className="text-lg font-bold text-red-600">{formatCurrency(totalSpent)}</p>
               </NeoCard>
               <NeoCard>
                 <p className="text-xs font-bold text-slate-500 uppercase mb-1">Total Balance</p>
-                <p className="text-lg font-bold text-blue-600">{formatCurrency(data.summary.total_balance)}</p>
+                <p className="text-lg font-bold text-blue-600">{formatCurrency(totalBalance)}</p>
               </NeoCard>
             </div>
 
@@ -110,9 +147,9 @@ export default function FundUtilizationReportPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.project_wise.length > 0 ? (
-                      data.project_wise.map((proj) => (
-                        <tr key={proj.project_id} className="border-b border-slate-200 print:border-gray-300">
+                    {filteredProjects.length > 0 ? (
+                      filteredProjects.map((proj) => (
+                        <tr key={proj.project_id} className="border-b border-slate-200 print:border-gray-300 hover:bg-slate-50/30">
                           <td className="p-3">
                             <p className="font-bold text-slate-800 print:text-black">{proj.project_code}</p>
                             <p className="text-xs text-slate-500 print:text-gray-600">{proj.project_name}</p>
@@ -125,20 +162,22 @@ export default function FundUtilizationReportPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5} className="p-6 text-center text-slate-500">No project data available.</td>
+                        <td colSpan={5} className="p-6 text-center text-slate-500">No projects found matching your search.</td>
                       </tr>
                     )}
                   </tbody>
                   {/* Footer Total Row */}
-                  <tfoot>
-                    <tr className="bg-slate-50 print:bg-transparent border-t-2 border-slate-300 print:border-black font-bold">
-                      <td className="p-3 text-slate-800 print:text-black uppercase">Grand Total</td>
-                      <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(data.summary.total_received)}</td>
-                      <td className="p-3 text-right text-green-700 print:text-black">{formatCurrency(data.summary.total_allocated)}</td>
-                      <td className="p-3 text-right text-red-700 print:text-black">{formatCurrency(data.summary.total_spent)}</td>
-                      <td className="p-3 text-right text-blue-800 print:text-black">{formatCurrency(data.summary.total_balance)}</td>
-                    </tr>
-                  </tfoot>
+                  {filteredProjects.length > 0 && (
+                    <tfoot>
+                      <tr className="bg-slate-50 print:bg-transparent border-t-2 border-slate-300 print:border-black font-bold">
+                        <td className="p-3 text-slate-800 print:text-black uppercase">Grand Total</td>
+                        <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalReceived)}</td>
+                        <td className="p-3 text-right text-green-700 print:text-black">{formatCurrency(totalAllocated)}</td>
+                        <td className="p-3 text-right text-red-700 print:text-black">{formatCurrency(totalSpent)}</td>
+                        <td className="p-3 text-right text-blue-800 print:text-black">{formatCurrency(totalBalance)}</td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             </NeoCard>

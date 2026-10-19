@@ -4,20 +4,30 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox, NeoBadge } from "@/components/neumorphism";
-import { ArrowLeft, Printer, Loader2, Receipt } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, Receipt, Search, Filter } from "lucide-react";
 import { getBillEntries, type BillEntry } from "@/lib/api/bills";
+import { getProjects, type Project } from "@/lib/api/projects";
 import { formatCurrency } from "@/lib/api/funds";
 
 export default function BillsReportPage() {
   const [data, setData] = useState<BillEntry[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [projectFilter, setProjectFilter] = useState<string>("");
 
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await getBillEntries();
-        setData(res.results || []);
+        const [billsRes, projRes] = await Promise.all([
+          getBillEntries(),
+          getProjects()
+        ]);
+        setData(billsRes.results || []);
+        setProjects(projRes.results || []);
       } catch (err: any) {
         setError(err.message || "Failed to load bills");
       } finally {
@@ -31,7 +41,18 @@ export default function BillsReportPage() {
     window.print();
   };
 
-  // Calculate Grand Totals
+  // Filter the data based on search and project
+  const filteredData = data.filter(bill => {
+    const matchesSearch = 
+      (bill.bill_no || "").toLowerCase().includes(search.toLowerCase()) ||
+      (bill.vendor_name || "").toLowerCase().includes(search.toLowerCase());
+      
+    const matchesProject = projectFilter === "" || String(bill.project) === projectFilter;
+
+    return matchesSearch && matchesProject;
+  });
+
+  // Calculate Grand Totals (Based on Filtered Data)
   let totalBase = 0;
   let totalGST = 0;
   let totalOther = 0;
@@ -39,16 +60,14 @@ export default function BillsReportPage() {
   let totalDeductions = 0;
   let totalNet = 0;
 
-  data.forEach(bill => {
+  filteredData.forEach(bill => {
     const base = Number(bill.bill_amount) || 0;
     const cgst = Number(bill.cgst_amount) || 0;
     const sgst = Number(bill.sgst_amount) || 0;
     const igst = Number(bill.igst_amount) || 0;
     const gst = cgst + sgst + igst;
-    
     const other = Number(bill.other_charges) || 0;
     
-    // Deductions = TDS GST + TDS Income Tax + Penalty + PBG
     const tds_gst = Number(bill.tds_gst) || 0;
     const tds_it = Number(bill.tds_income_tax) || 0;
     const penalty = Number(bill.penalty) || 0;
@@ -68,7 +87,7 @@ export default function BillsReportPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-[1400px] mx-auto space-y-6">
         
         {/* Header (Hide on Print) */}
         <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
@@ -93,6 +112,38 @@ export default function BillsReportPage() {
           </NeoButton>
         </div>
 
+        {/* Filters (Hide on Print) */}
+        <NeoCard padding="sm" className="print:hidden">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[240px] relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10" />
+              <input
+                type="text"
+                placeholder="Search by Bill No or Vendor..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-11 pl-10 pr-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
+                style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-slate-500" />
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none font-medium min-w-[200px]"
+                style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+              >
+                <option value="">All Projects</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.project_code} - {p.project_name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </NeoCard>
+
         {/* Content */}
         {loading ? (
           <div className="flex justify-center py-20 print:hidden">
@@ -104,7 +155,7 @@ export default function BillsReportPage() {
           </NeoCard>
         ) : (
           <>
-            {/* Print Header (Visible only on print) */}
+            {/* Print Header */}
             <div className="hidden print:block text-center mb-8">
               <h2 className="text-2xl font-bold uppercase">Indian Institute of Technology (BHU)</h2>
               <p className="text-lg">Varanasi - 221005</p>
@@ -118,19 +169,21 @@ export default function BillsReportPage() {
                 <table className="w-full text-sm text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-100/50 print:bg-transparent border-b-2 border-slate-300 print:border-black">
-                      <th className="p-3 font-bold text-slate-700 uppercase print:text-black">Bill / Vendor</th>
+                      <th className="p-3 font-bold text-slate-700 uppercase print:text-black">Bill No</th>
+                      <th className="p-3 font-bold text-slate-700 uppercase print:text-black">Vendor</th>
+                      <th className="p-3 font-bold text-slate-700 uppercase print:text-black">Project Details</th>
                       <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black">Base Amt</th>
                       <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black">GST</th>
                       <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black">Other (+)</th>
-                      <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black bg-blue-50/50 print:bg-transparent">Gross Total</th>
+                      <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black bg-blue-50/50 print:bg-transparent">Gross</th>
                       <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black text-red-700">Deductions (-)</th>
                       <th className="p-3 font-bold text-slate-700 uppercase text-right print:text-black bg-green-50/50 print:bg-transparent text-green-700">Net Payable</th>
                       <th className="p-3 font-bold text-slate-700 uppercase text-center print:text-black">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.length > 0 ? (
-                      data.map((bill) => {
+                    {filteredData.length > 0 ? (
+                      filteredData.map((bill) => {
                         const base = Number(bill.bill_amount) || 0;
                         const gst = (Number(bill.cgst_amount) || 0) + (Number(bill.sgst_amount) || 0) + (Number(bill.igst_amount) || 0);
                         const other = Number(bill.other_charges) || 0;
@@ -139,9 +192,11 @@ export default function BillsReportPage() {
                         
                         return (
                           <tr key={bill.id} className="border-b border-slate-200 print:border-gray-300 hover:bg-slate-50/30">
+                            <td className="p-3 font-bold text-slate-800 print:text-black whitespace-nowrap">{bill.bill_no}</td>
+                            <td className="p-3 text-slate-700 print:text-black">{bill.vendor_name}</td>
                             <td className="p-3">
-                              <p className="font-bold text-slate-800 print:text-black">{bill.bill_no}</p>
-                              <p className="text-xs text-slate-500 print:text-gray-600">{bill.vendor_name}</p>
+                              <p className="font-semibold text-indigo-700 print:text-black">{bill.project_code}</p>
+                              <p className="text-[10px] text-slate-500 print:text-gray-600">{bill.project_name}</p>
                             </td>
                             <td className="p-3 text-right text-slate-700 print:text-black">{formatCurrency(base)}</td>
                             <td className="p-3 text-right text-slate-700 print:text-black">{formatCurrency(gst)}</td>
@@ -168,15 +223,15 @@ export default function BillsReportPage() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={8} className="p-6 text-center text-slate-500">No bills found.</td>
+                        <td colSpan={10} className="p-6 text-center text-slate-500">No bills found matching your search.</td>
                       </tr>
                     )}
                   </tbody>
                   {/* Footer Total Row */}
-                  {data.length > 0 && (
+                  {filteredData.length > 0 && (
                     <tfoot>
                       <tr className="bg-slate-100 print:bg-transparent border-t-2 border-slate-400 print:border-black font-bold">
-                        <td className="p-3 text-slate-800 print:text-black uppercase text-right">Grand Total</td>
+                        <td colSpan={3} className="p-3 text-slate-800 print:text-black uppercase text-right">Grand Total</td>
                         <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalBase)}</td>
                         <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalGST)}</td>
                         <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalOther)}</td>
