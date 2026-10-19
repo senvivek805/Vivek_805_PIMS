@@ -37,6 +37,7 @@ import {
   BILL_STATUS_VARIANTS,
   type BillEntry,
 } from "@/lib/api/bills";
+import { formatCurrency } from "@/lib/api/purchase";
 
 export default function BillDetailPage() {
   const router = useRouter();
@@ -240,14 +241,27 @@ export default function BillDetailPage() {
               </div>
             </div>
 
-            <div className="text-right">
-              <p className="text-xs text-slate-500 uppercase font-bold">
-                Total Payable
-              </p>
-              <p className="text-3xl font-bold text-green-600">
-                {formatAmount(bill.total_payable)}
-              </p>
-            </div>
+<div className="text-right flex flex-col items-end">
+  <p className="text-[15px] font-semibold text-orange-800 uppercase tracking-wider mb-1">
+    Gross Amount
+  </p>
+  <p className="text-[25px] font-bold text-indigo-600 mb-2">
+    {formatCurrency(
+      Number(bill.bill_amount) + 
+      Number(bill.cgst_amount) + 
+      Number(bill.sgst_amount) + 
+      Number(bill.igst_amount) + 
+      Number(bill.other_charges)
+    )}
+  </p>
+
+  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 mt-2">
+    Total Payable
+  </p>
+  <p className="text-2xl font-bold text-green-600">
+    {formatCurrency(bill.total_payable)}
+  </p>
+</div>
           </div>
         </NeoCard>
 

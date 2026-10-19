@@ -1,9 +1,9 @@
 "use client";
 
+import GlobalSearch from "./GlobalSearch";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Search,
   Bell,
   Menu,
   ChevronDown,
@@ -91,18 +91,10 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
 
       {/* Right Section */}
       <div className="flex items-center gap-3">
-        {/* Search */}
+        
+        {/* Global Search Component */}
         <div className="hidden md:flex relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10" />
-          <input
-            type="text"
-            placeholder="Search anything..."
-            className="w-64 h-11 pl-10 pr-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 placeholder:text-slate-400 border-0 outline-none"
-            style={{
-              boxShadow:
-                "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff",
-            }}
-          />
+          <GlobalSearch />
         </div>
 
         {/* ============================================ */}

@@ -1,6 +1,8 @@
 from django.urls import path
 
 from . import views
+from projects.api.views import global_search
+from projects.api.views import project_sanctioned_heads
 
 app_name = 'projects_api'
 
@@ -21,4 +23,6 @@ urlpatterns = [
 
     # Global Budget Overview (project-wise) — renamed
     path('budget/projects-overview/', views.budget_overview, name='budget-overview'),
+    path('global-search/', global_search, name='global-search'),
+    path('projects/<int:project_id>/sanctioned-heads/', project_sanctioned_heads),
 ]

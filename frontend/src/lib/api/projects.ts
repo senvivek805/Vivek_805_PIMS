@@ -40,6 +40,7 @@ export interface ProjectPI {
   id?: number;
   project?: number;
   name: string;
+  total_sanctioned_amount?: number | string;
   role: PIRole;
   role_display?: string;
   designation?: string;
@@ -92,6 +93,7 @@ export interface ProjectCreateUpdate {
   co_pi_name?: string;
   coordinator_name?: string;
   sanctioned_amount: number;
+  total_sanctioned_amount?: number | string;
   status: string;
   remarks?: string;
   pis?: Omit<ProjectPI, "id" | "project" | "created_at" | "updated_at">[];

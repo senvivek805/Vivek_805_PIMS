@@ -57,6 +57,13 @@ class Project(BaseModel):
     project_code = models.CharField(max_length=50, unique=True)
     project_name = models.CharField(max_length=500)
     description = models.TextField(blank=True)
+    total_sanctioned_amount = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name="Total Sanctioned Amount",
+        help_text="Total amount sanctioned by funding agency (e.g., 20000000)"
+    )
 
     # Relations
     agency = models.ForeignKey(
@@ -163,3 +170,35 @@ class ProjectPI(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.get_role_display()}) — {self.project.project_code}"
+
+
+class ProjectSanctionedHead(BaseModel):
+    """
+    Project ke andar har Budget Head ka kitna paisa sanctioned hai.
+    (e.g., Manpower: 50L, Equipment: 1Cr)
+    """
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='sanctioned_heads'
+    )
+    budget_head = models.ForeignKey(
+        'funds.BudgetHead',
+        on_delete=models.CASCADE,
+        related_name='project_sanctions'
+    )
+    sanctioned_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="Sanctioned Amount"
+    )
+
+    class Meta:
+        db_table = 'pims_project_sanctioned_heads'
+        unique_together = ('project', 'budget_head')
+        verbose_name = 'Project Sanctioned Head'
+        verbose_name_plural = 'Project Sanctioned Heads'
+
+    def __str__(self):
+        return f"{self.project.project_code} - {self.budget_head.name} - {self.sanctioned_amount}"

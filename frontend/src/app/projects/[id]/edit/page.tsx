@@ -9,644 +9,498 @@ import {
   NeoButton,
   NeoBadge,
   NeoIconBox,
+  NeoInput,
 } from "@/components/neumorphism";
 import {
   FolderKanban,
-  ArrowLeft,
-  Pencil,
+  Save,
+  X,
+  Plus,
   Trash2,
-  User,
-  Building2,
-  GraduationCap,
-  Calendar,
-  IndianRupee,
-  Mail,
-  Phone,
-  Clock,
+  UserPlus,
   AlertCircle,
   Loader2,
-  X,
-  AlertTriangle,
-  RefreshCw,
-  FileText,
 } from "lucide-react";
 import {
   getProject,
-  deleteProject,
-  type Project,
-  type ProjectPI,
+  updateProject,
+  getAgencies,
+  getDepartments,
+  type Agency,
+  type Department,
+  type PIRole,
 } from "@/lib/api/projects";
+import { getBudgetHeads, type BudgetHead } from "@/lib/api/funds";
+import { getProjectSanctionedHeads, saveProjectSanctionedHeads } from "@/lib/api/projectSanction";
 
-export default function ProjectDetailPage() {
+interface PIRow {
+  id: string;
+  name: string;
+  role: PIRole;
+  designation: string;
+  email: string;
+  phone: string;
+  department: string;
+  order: number;
+}
+
+function generatePIId() {
+  return `pi-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
+export default function EditProjectPage() {
   const router = useRouter();
   const params = useParams();
   const projectId = Number(params.id);
 
-  const [project, setProject] = useState<Project | null>(null);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [headsList, setHeadsList] = useState<BudgetHead[]>([]);
+  
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Delete modal
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  // Form State
+  const [projectCode, setProjectCode] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [description, setDescription] = useState("");
+  const [agencyId, setAgencyId] = useState<number | "">("");
+  const [departmentId, setDepartmentId] = useState<number | "">("");
+  const [sanctionedAmount, setSanctionedAmount] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [status, setStatus] = useState("active");
+  const [remarks, setRemarks] = useState("");
+
+  const [pis, setPis] = useState<PIRow[]>([]);
+  const [allocations, setAllocations] = useState<{ budget_head: string; sanctioned_amount: string }[]>([]);
 
   // ============================================
-  // LOAD
+  // LOAD DATA
   // ============================================
-
   useEffect(() => {
-    async function load() {
-      if (!projectId || isNaN(projectId)) {
-        setError("Invalid project ID");
-        setLoading(false);
-        return;
-      }
+    async function loadData() {
       try {
-        const data = await getProject(projectId);
-        setProject(data);
+        const [projData, agenciesData, departmentsData, headsData, sanctionsData] = await Promise.all([
+          getProject(projectId),
+          getAgencies(),
+          getDepartments(),
+          getBudgetHeads(),
+          getProjectSanctionedHeads(projectId).catch(() => []) // Catch if no heads exist yet
+        ]);
+
+        setAgencies(agenciesData);
+        setDepartments(departmentsData);
+        setHeadsList(headsData || []);
+
+        // Populate form
+        setProjectCode(projData.project_code || "");
+        setProjectName(projData.project_name || "");
+        setDescription(projData.description || "");
+        setAgencyId(projData.agency || "");
+        setDepartmentId(projData.department || "");
+        // Fallback to sanctioned_amount if total_sanctioned_amount is 0
+        setSanctionedAmount(String(projData.total_sanctioned_amount || projData.sanctioned_amount || ""));
+        setStartDate(projData.start_date || "");
+        setEndDate(projData.end_date || "");
+        setStatus(projData.status || "active");
+        setRemarks(projData.remarks || "");
+
+        if (projData.pis && projData.pis.length > 0) {
+          setPis(projData.pis.map((p: any) => ({
+            id: `pi-${p.id}`,
+            name: p.name,
+            role: p.role,
+            designation: p.designation || "",
+            email: p.email || "",
+            phone: p.phone || "",
+            department: p.department || "",
+            order: p.order || 1,
+          })));
+        } else {
+          setPis([{ id: "pi-initial", name: "", role: "pi", designation: "", email: "", phone: "", department: "", order: 1 }]);
+        }
+
+        if (sanctionsData && sanctionsData.length > 0) {
+          setAllocations(sanctionsData.map(s => ({
+            budget_head: String(s.budget_head),
+            sanctioned_amount: String(s.sanctioned_amount)
+          })));
+        } else {
+          setAllocations([{ budget_head: "", sanctioned_amount: "" }]);
+        }
+
       } catch (err: any) {
-        setError(err.message || "Failed to load project");
+        setError(err.message || "Failed to load project data");
       } finally {
         setLoading(false);
       }
     }
-    load();
+    if (projectId) loadData();
   }, [projectId]);
 
   // ============================================
-  // DELETE
+  // HANDLERS
   // ============================================
 
-  async function handleDelete() {
-    if (!project) return;
-    setDeleting(true);
+  function addPIRow() {
+    setPis([...pis, { id: generatePIId(), name: "", role: "co_pi", designation: "", email: "", phone: "", department: "", order: pis.length + 1 }]);
+  }
+
+  function removePIRow(id: string) {
+    if (pis.length === 1) return alert("Kam se kam ek PI hona chahiye.");
+    setPis(pis.filter(p => p.id !== id).map((p, i) => ({ ...p, order: i + 1 })));
+  }
+
+  function updatePIRow(id: string, field: keyof PIRow, value: any) {
+    setPis(pis.map(p => p.id === id ? { ...p, [field]: value } : p));
+  }
+
+  const handleAddHead = () => setAllocations([...allocations, { budget_head: "", sanctioned_amount: "" }]);
+  const handleRemoveHead = (index: number) => {
+    const newAllocations = [...allocations];
+    newAllocations.splice(index, 1);
+    setAllocations(newAllocations);
+  };
+  const handleAllocationChange = (index: number, field: "budget_head" | "sanctioned_amount", value: string) => {
+    const newAllocations = [...allocations];
+    newAllocations[index][field] = value;
+    setAllocations(newAllocations);
+  };
+
+  const totalAllocated = allocations.reduce((sum, item) => sum + (Number(item.sanctioned_amount) || 0), 0);
+
+  // ============================================
+  // SUBMIT
+  // ============================================
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
     try {
-      await deleteProject(project.id);
-      router.push("/projects");
+      const validPIs = pis.filter((p) => p.name.trim());
+      if (validPIs.length === 0) throw new Error("Kam se kam ek PI ka naam zaroori hai.");
+
+      const payload = {
+        project_code: projectCode.toUpperCase(),
+        project_name: projectName,
+        description: description,
+        agency: agencyId || null,
+        department: departmentId || null,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+        sanctioned_amount: parseFloat(sanctionedAmount),
+        total_sanctioned_amount: parseFloat(sanctionedAmount),
+        status: status,
+        remarks: remarks,
+        pi_name: validPIs.find((p) => p.role === "pi")?.name || validPIs[0].name,
+        pis: validPIs.map((p, index) => ({
+          name: p.name,
+          role: p.role,
+          designation: p.designation,
+          email: p.email,
+          phone: p.phone,
+          department: p.department,
+          order: index + 1,
+        })),
+      };
+
+      // 1. Update Project
+      await updateProject(projectId, payload);
+      
+      // 2. Save Sanctioned Heads
+      const validHeads = allocations
+        .filter(a => a.budget_head && Number(a.sanctioned_amount) > 0)
+        .map(a => ({
+          budget_head: Number(a.budget_head),
+          sanctioned_amount: Number(a.sanctioned_amount)
+        }));
+
+      if (validHeads.length > 0) {
+        await saveProjectSanctionedHeads(projectId, validHeads);
+      }
+
+      router.push(`/projects/${projectId}`);
     } catch (err: any) {
-      alert("Failed to delete: " + err.message);
-      setDeleting(false);
+      setError(err.message || "Failed to update project");
+      setSaving(false);
     }
   }
 
-  // ============================================
-  // CONFIG
-  // ============================================
-
-  const statusConfig: Record<string, { label: string; variant: any; emoji: string }> = {
-    active: { label: "Active", variant: "success", emoji: "🟢" },
-    completed: { label: "Completed", variant: "primary", emoji: "🔵" },
-    on_hold: { label: "On Hold", variant: "warning", emoji: "🟠" },
-    cancelled: { label: "Cancelled", variant: "danger", emoji: "🔴" },
-    pending: { label: "Pending", variant: "info", emoji: "🟡" },
-  };
-
-  const roleConfig: Record<string, { label: string; color: string; emoji: string }> = {
-    pi: { label: "Principal Investigator", color: "text-blue-600", emoji: "🎯" },
-    co_pi: { label: "Co-PI", color: "text-green-600", emoji: "👥" },
-    coordinator: { label: "Coordinator", color: "text-orange-600", emoji: "🎯" },
-    mentor: { label: "Mentor", color: "text-purple-600", emoji: "⭐" },
-    investigator: { label: "Investigator", color: "text-cyan-600", emoji: "🔬" },
-  };
-
-  function formatCurrency(amount: string | number | undefined) {
-    if (!amount) return "—";
-    const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    return `₹${num.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
-  }
-
-  function formatDate(date?: string) {
-    if (!date) return "—";
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  }
-
-  // ============================================
-  // LOADING
-  // ============================================
+  const roleOptions: { value: PIRole; label: string }[] = [
+    { value: "pi", label: "🎯 Principal Investigator" },
+    { value: "co_pi", label: "👥 Co-PI" },
+    { value: "coordinator", label: "🎯 Coordinator" },
+    { value: "mentor", label: "⭐ Mentor" },
+    { value: "investigator", label: "🔬 Investigator" },
+  ];
 
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-          <p className="text-sm text-slate-500">Loading project...</p>
-        </div>
+        <div className="flex justify-center py-20"><Loader2 className="h-10 w-10 animate-spin text-blue-600" /></div>
       </AppLayout>
     );
   }
-
-  if (error || !project) {
-    return (
-      <AppLayout>
-        <NeoCard>
-          <div className="text-center py-10">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-800 mb-2">
-              Project not found
-            </h2>
-            <p className="text-sm text-slate-500 mb-6">{error}</p>
-            <Link href="/projects">
-              <NeoButton variant="primary" icon={<ArrowLeft className="h-4 w-4" />}>
-                Back to Projects
-              </NeoButton>
-            </Link>
-          </div>
-        </NeoCard>
-      </AppLayout>
-    );
-  }
-
-  const status = statusConfig[project.status] || {
-    label: project.status,
-    variant: "neutral",
-    emoji: "⚪",
-  };
-
-  // ============================================
-  // PAGE
-  // ============================================
 
   return (
     <AppLayout>
       <div className="space-y-6 max-w-5xl mx-auto">
-
-        {/* ============================================
-            HEADER — Back + Actions
-            ============================================ */}
+        {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link href="/projects">
-            <NeoButton
-              variant="secondary"
-              size="md"
-              icon={<ArrowLeft className="h-4 w-4" />}
-            >
-              Back
+          <div className="flex items-center gap-4">
+            <NeoIconBox size="lg" color="text-amber-600">
+              <FolderKanban className="h-6 w-6" />
+            </NeoIconBox>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">Edit Project</h1>
+              <p className="text-sm text-slate-500">Update project details and allocations</p>
+            </div>
+          </div>
+          <Link href={`/projects/${projectId}`}>
+            <NeoButton variant="secondary" size="md" icon={<X className="h-4 w-4" />}>
+              Cancel
             </NeoButton>
           </Link>
-
-          <div className="flex items-center gap-3">
-            <Link href={`/projects/${project.id}/edit`}>
-              <NeoButton
-                variant="primary"
-                size="md"
-                icon={<Pencil className="h-4 w-4" />}
-              >
-                Edit
-              </NeoButton>
-            </Link>
-            <NeoButton
-              variant="danger"
-              size="md"
-              onClick={() => setShowDelete(true)}
-              icon={<Trash2 className="h-4 w-4" />}
-            >
-              Delete
-            </NeoButton>
-          </div>
         </div>
 
-        {/* ============================================
-            HERO — Project Title Card
-            ============================================ */}
-        <NeoCard>
-          <div className="flex flex-wrap items-start gap-5">
-            <NeoIconBox size="xl" color="text-blue-600" variant="inset">
-              <FolderKanban className="h-8 w-8" />
-            </NeoIconBox>
-
-            <div className="flex-1 min-w-[240px]">
-              <div className="flex flex-wrap items-center gap-3 mb-2">
-                <span className="text-sm font-bold text-slate-500 tracking-wide">
-                  {project.project_code}
-                </span>
-                <NeoBadge variant={status.variant} size="md">
-                  {status.emoji} {status.label}
-                </NeoBadge>
-              </div>
-
-              <h1 className="text-3xl font-bold text-slate-800 mb-3">
-                {project.project_name}
-              </h1>
-
-              {project.description && (
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {project.description}
-                </p>
-              )}
+        {error && (
+          <NeoCard padding="sm">
+            <div className="flex items-center gap-3 text-red-600">
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm font-medium">{error}</p>
             </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-200/40">
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                background: "#e0e5ec",
-                boxShadow:
-                  "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <IndianRupee className="h-4 w-4 text-green-600" />
-                <p className="text-xs font-bold text-slate-500 uppercase">
-                  Sanctioned Amount
-                </p>
-              </div>
-              <p className="text-2xl font-bold text-slate-800">
-                {formatCurrency(project.sanctioned_amount)}
-              </p>
-            </div>
-
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                background: "#e0e5ec",
-                boxShadow:
-                  "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Calendar className="h-4 w-4 text-blue-600" />
-                <p className="text-xs font-bold text-slate-500 uppercase">
-                  Start Date
-                </p>
-              </div>
-              <p className="text-lg font-bold text-slate-800">
-                {formatDate(project.start_date)}
-              </p>
-            </div>
-
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                background: "#e0e5ec",
-                boxShadow:
-                  "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-purple-600" />
-                <p className="text-xs font-bold text-slate-500 uppercase">
-                  End Date
-                </p>
-              </div>
-              <p className="text-lg font-bold text-slate-800">
-                {formatDate(project.end_date)}
-              </p>
-            </div>
-          </div>
-        </NeoCard>
-
-        {/* ============================================
-            ORGANIZATION
-            ============================================ */}
-        <NeoCard>
-          <div className="flex items-center gap-3 mb-5">
-            <NeoIconBox size="md" color="text-green-600">
-              <Building2 className="h-5 w-5" />
-            </NeoIconBox>
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Funding & Organization
-              </h2>
-              <p className="text-xs text-slate-500">
-                Agency and department details
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                background: "#e0e5ec",
-                boxShadow:
-                  "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Building2 className="h-4 w-4 text-green-600" />
-                <p className="text-xs font-bold text-slate-500 uppercase">
-                  Funding Agency
-                </p>
-              </div>
-              <p className="text-base font-bold text-slate-800">
-                {project.agency_name || "—"}
-              </p>
-              {project.agency_code && (
-                <p className="text-xs text-slate-500 mt-1">
-                  Code: {project.agency_code}
-                </p>
-              )}
-            </div>
-
-            <div
-              className="p-4 rounded-2xl"
-              style={{
-                background: "#e0e5ec",
-                boxShadow:
-                  "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <GraduationCap className="h-4 w-4 text-blue-600" />
-                <p className="text-xs font-bold text-slate-500 uppercase">
-                  Department
-                </p>
-              </div>
-              <p className="text-base font-bold text-slate-800">
-                {project.department_name || "—"}
-              </p>
-              {project.department_code && (
-                <p className="text-xs text-slate-500 mt-1">
-                  Code: {project.department_code}
-                </p>
-              )}
-            </div>
-          </div>
-        </NeoCard>
-
-        {/* ============================================
-            PIs / CO-PIs
-            ============================================ */}
-        <NeoCard>
-          <div className="flex items-center gap-3 mb-5">
-            <NeoIconBox size="md" color="text-orange-600">
-              <User className="h-5 w-5" />
-            </NeoIconBox>
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                PIs / Co-PIs / Coordinators
-              </h2>
-              <p className="text-xs text-slate-500">
-                People involved in this project
-              </p>
-            </div>
-          </div>
-
-          {/* PIs from new model */}
-          {project.pis && project.pis.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {project.pis.map((pi: ProjectPI) => {
-                const role = roleConfig[pi.role] || {
-                  label: pi.role,
-                  color: "text-slate-600",
-                  emoji: "👤",
-                };
-
-                return (
-                  <div
-                    key={pi.id}
-                    className="p-4 rounded-2xl"
-                    style={{
-                      background: "#e0e5ec",
-                      boxShadow:
-                        "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-                    }}
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <div
-                        className="h-11 w-11 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
-                        style={{
-                          background: "linear-gradient(135deg, #4f6df5 0%, #6366f1 100%)",
-                          color: "#ffffff",
-                        }}
-                      >
-                        {pi.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-800 truncate">
-                          {pi.name}
-                        </p>
-                        <p className={`text-xs font-semibold ${role.color} mt-0.5`}>
-                          {role.emoji} {role.label}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-slate-600">
-                      {pi.designation && (
-                        <p className="flex items-center gap-2">
-                          <GraduationCap className="h-3 w-3 text-slate-400" />
-                          {pi.designation}
-                        </p>
-                      )}
-                      {pi.department && (
-                        <p className="flex items-center gap-2">
-                          <Building2 className="h-3 w-3 text-slate-400" />
-                          {pi.department}
-                        </p>
-                      )}
-                      {pi.email && (
-                        <p className="flex items-center gap-2 truncate">
-                          <Mail className="h-3 w-3 text-slate-400" />
-                          <a
-                            href={`mailto:${pi.email}`}
-                            className="hover:text-blue-600 truncate"
-                          >
-                            {pi.email}
-                          </a>
-                        </p>
-                      )}
-                      {pi.phone && (
-                        <p className="flex items-center gap-2">
-                          <Phone className="h-3 w-3 text-slate-400" />
-                          {pi.phone}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            // Fallback to legacy fields
-            <div className="space-y-3">
-              {project.pi_name && (
-                <div
-                  className="p-4 rounded-2xl flex items-center gap-3"
-                  style={{
-                    background: "#e0e5ec",
-                    boxShadow:
-                      "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-                  }}
-                >
-                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800">{project.pi_name}</p>
-                    <p className="text-xs text-blue-600 font-semibold">
-                      🎯 Principal Investigator
-                    </p>
-                  </div>
-                </div>
-              )}
-              {project.co_pi_name && (
-                <div
-                  className="p-4 rounded-2xl flex items-center gap-3"
-                  style={{
-                    background: "#e0e5ec",
-                    boxShadow:
-                      "inset 2px 2px 4px #b8bcc2, inset -2px -2px 4px #ffffff",
-                  }}
-                >
-                  <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <User className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800">{project.co_pi_name}</p>
-                    <p className="text-xs text-green-600 font-semibold">
-                      👥 Co-PI
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </NeoCard>
-
-        {/* ============================================
-            REMARKS
-            ============================================ */}
-        {project.remarks && (
-          <NeoCard>
-            <div className="flex items-center gap-3 mb-4">
-              <NeoIconBox size="md" color="text-purple-600">
-                <FileText className="h-5 w-5" />
-              </NeoIconBox>
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Remarks</h2>
-                <p className="text-xs text-slate-500">
-                  Additional notes
-                </p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              {project.remarks}
-            </p>
           </NeoCard>
         )}
 
-        {/* ============================================
-            TIMESTAMPS
-            ============================================ */}
-        <NeoCard padding="sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-            <span>
-              Created:{" "}
-              <strong className="text-slate-700">
-                {formatDate(project.created_at)}
-              </strong>
-            </span>
-            <span>
-              Last Updated:{" "}
-              <strong className="text-slate-700">
-                {formatDate(project.updated_at)}
-              </strong>
-            </span>
-          </div>
-        </NeoCard>
-
-      </div>
-
-      {/* ============================================
-          DELETE MODAL
-          ============================================ */}
-      {showDelete && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-          onClick={() => !deleting && setShowDelete(false)}
-        >
-          <div
-            className="w-full max-w-md p-6 rounded-3xl"
-            style={{
-              background: "#e0e5ec",
-              boxShadow:
-                "20px 20px 60px rgba(0,0,0,0.3), -10px -10px 30px rgba(255,255,255,0.5)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center mb-5">
-              <div
-                className="h-16 w-16 rounded-full flex items-center justify-center"
-                style={{
-                  background: "rgba(239, 68, 68, 0.1)",
-                  boxShadow:
-                    "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff",
-                }}
-              >
-                <AlertTriangle className="h-7 w-7 text-red-600" />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* SECTION 1: PROJECT INFO */}
+          <NeoCard>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <NeoInput
+                label="Project Code *"
+                value={projectCode}
+                onChange={(e) => setProjectCode(e.target.value)}
+                required
+              />
+              <NeoInput
+                label="Project Name *"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                required
+              />
+              <div className="md:col-span-2">
+                <NeoInput
+                  label="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
             </div>
+          </NeoCard>
 
-            <h2 className="text-xl font-bold text-slate-800 text-center mb-2">
-              Delete Project?
-            </h2>
-            <p className="text-sm text-slate-600 text-center mb-1">
-              Ye project delete ho jayega:
-            </p>
-            <p className="text-sm font-bold text-slate-800 text-center mb-6">
-              {project.project_name}
-            </p>
+          {/* SECTION 2: FUNDING */}
+          <NeoCard>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              
+              {/* Funding Agency with + Button */}
+              <div className="space-y-1.5">
+                <label className="text-slate-700 font-medium text-xs pl-2">Funding Agency</label>
+                <div className="flex gap-2">
+                  <select
+                    value={agencyId}
+                    onChange={(e) => setAgencyId(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
+                    style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                  >
+                    <option value="">Select Agency</option>
+                    {agencies.map((a) => <option key={a.id} value={a.id}>{a.code} — {a.name}</option>)}
+                  </select>
+                  <a 
+                    href="http://localhost:8000/admin/projects/agency/add/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-blue-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:scale-105 transition-all"
+                    title="Add New Agency"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </a>
+                </div>
+              </div>
 
-            <div
-              className="p-3 rounded-xl mb-6 text-xs text-red-600 flex items-start gap-2"
-              style={{ background: "rgba(239, 68, 68, 0.08)" }}
-            >
-              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-              <p>Soft delete — data database me safe rahega.</p>
+              {/* Department with + Button */}
+              <div className="space-y-1.5">
+                <label className="text-slate-700 font-medium text-xs pl-2">Department</label>
+                <div className="flex gap-2">
+                  <select
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
+                    style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map((d) => <option key={d.id} value={d.id}>{d.code} — {d.name}</option>)}
+                  </select>
+                  <a 
+                    href="http://localhost:8000/admin/projects/department/add/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-blue-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:scale-105 transition-all"
+                    title="Add New Department"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </a>
+                </div>
+              </div>
+
+              <NeoInput
+                label="Total Sanctioned Amount (₹) *"
+                type="number"
+                step="0.01"
+                value={sanctionedAmount}
+                onChange={(e) => setSanctionedAmount(e.target.value)}
+                required
+              />
             </div>
+          </NeoCard>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDelete(false)}
-                disabled={deleting}
-                className="flex-1 h-11 rounded-xl font-bold text-sm text-slate-700 disabled:opacity-50"
-                style={{
-                  background: "#e0e5ec",
-                  boxShadow: "4px 4px 8px #b8bcc2, -4px -4px 8px #ffffff",
-                }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <X className="h-4 w-4" />
-                  Cancel
-                </span>
-              </button>
-
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1 h-11 rounded-xl font-bold text-sm text-white disabled:opacity-50"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-                  boxShadow:
-                    "4px 4px 12px #b8bcc2, -4px -4px 12px #ffffff, inset 0 1px 0 rgba(255,255,255,0.2)",
-                }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  {deleting ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </>
-                  )}
-                </span>
-              </button>
+          {/* SECTION 3: SANCTIONED HEADS */}
+          <NeoCard>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Sanctioned Heads Breakdown</h2>
+                <p className="text-xs text-slate-500">Divide the total amount into specific budget heads</p>
+              </div>
+              <NeoButton type="button" variant="secondary" size="sm" onClick={handleAddHead} icon={<Plus className="h-4 w-4" />}>Add Head</NeoButton>
             </div>
+            <div className="space-y-3">
+              {allocations.map((alloc, index) => (
+                <div key={index} className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+                  
+                  {/* Select Head with + Button */}
+                  <div className="flex-1 flex gap-2">
+                    <select
+                      value={alloc.budget_head}
+                      onChange={(e) => handleAllocationChange(index, "budget_head", e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none font-medium"
+                      style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                    >
+                      <option value="">Select Budget Head</option>
+                      {headsList.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                    </select>
+                    <a 
+                      href="http://localhost:8000/admin/funds/budgethead/add/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-indigo-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:scale-105 transition-all"
+                      title="Add New Budget Head"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </a>
+                  </div>
+
+                  <div className="w-full md:w-64 shrink-0">
+                    <NeoInput
+                      type="number"
+                      placeholder="Amount (₹)"
+                      value={alloc.sanctioned_amount}
+                      onChange={(e) => handleAllocationChange(index, "sanctioned_amount", e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHead(index)}
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl text-red-600 bg-[#e0e5ec] shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:text-red-700 transition-all"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end border-t border-slate-300 pt-4">
+              <p className="text-sm font-bold text-slate-700">
+                Total Allocated: <span className={totalAllocated === Number(sanctionedAmount) ? "text-green-600" : "text-orange-500"}>₹ {totalAllocated.toLocaleString("en-IN")}</span>
+                <span className="text-slate-400 ml-2">/ ₹ {Number(sanctionedAmount || 0).toLocaleString("en-IN")}</span>
+              </p>
+            </div>
+          </NeoCard>
+
+          {/* SECTION 4: DATES */}
+          <NeoCard>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <NeoInput label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <NeoInput label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </NeoCard>
+
+          {/* SECTION 5: PIs */}
+          <NeoCard>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">PIs / Co-PIs / Coordinators</h2>
+              </div>
+              <NeoButton type="button" variant="success" size="sm" onClick={addPIRow} icon={<Plus className="h-3.5 w-3.5" />}>Add More</NeoButton>
+            </div>
+            <div className="space-y-4">
+              {pis.map((pi, index) => (
+                <div key={pi.id} className="p-5 rounded-2xl" style={{ background: "#e0e5ec", boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <NeoBadge variant={pi.role === "pi" ? "primary" : "success"} size="sm">#{index + 1}</NeoBadge>
+                    {pis.length > 1 && (
+                      <button type="button" onClick={() => removePIRow(pi.id)} className="h-8 w-8 rounded-lg flex items-center justify-center text-red-600" style={{ background: "#e0e5ec", boxShadow: "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff" }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <NeoInput label="Name *" value={pi.name} onChange={(e) => updatePIRow(pi.id, "name", e.target.value)} required />
+                    <div className="space-y-1.5">
+                      <label className="text-slate-700 font-medium text-xs pl-2">Role *</label>
+                      <select value={pi.role} onChange={(e) => updatePIRow(pi.id, "role", e.target.value as PIRole)} className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none" style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}>
+                        {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                      </select>
+                    </div>
+                    <NeoInput label="Designation" value={pi.designation} onChange={(e) => updatePIRow(pi.id, "designation", e.target.value)} />
+                    <NeoInput label="Email" value={pi.email} onChange={(e) => updatePIRow(pi.id, "email", e.target.value)} />
+                    <NeoInput label="Phone" value={pi.phone} onChange={(e) => updatePIRow(pi.id, "phone", e.target.value)} />
+                    <NeoInput label="Department" value={pi.department} onChange={(e) => updatePIRow(pi.id, "department", e.target.value)} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </NeoCard>
+
+          {/* SECTION 6: STATUS */}
+          <NeoCard>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-slate-700 font-medium text-xs pl-2">Status *</label>
+                <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none" style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}>
+                  <option value="active">🟢 Active</option>
+                  <option value="pending">🟡 Pending Approval</option>
+                  <option value="on_hold">🟠 On Hold</option>
+                  <option value="completed">🔵 Completed</option>
+                  <option value="cancelled">🔴 Cancelled</option>
+                </select>
+              </div>
+              <NeoInput label="Remarks" value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+            </div>
+          </NeoCard>
+
+          <div className="flex justify-end gap-4">
+            <Link href={`/projects/${projectId}`}>
+              <NeoButton type="button" variant="secondary" size="lg" icon={<X className="h-4 w-4" />}>Cancel</NeoButton>
+            </Link>
+            <NeoButton type="submit" variant="primary" size="lg" loading={saving} icon={<Save className="h-4 w-4" />}>
+              {saving ? "Updating..." : "Update Project"}
+            </NeoButton>
           </div>
-        </div>
-      )}
+        </form>
+      </div>
     </AppLayout>
   );
 }

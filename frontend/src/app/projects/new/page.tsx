@@ -30,6 +30,8 @@ import {
   type PIRole,
   type ProjectCreateUpdate,
 } from "@/lib/api/projects";
+import { getBudgetHeads, type BudgetHead } from "@/lib/api/funds";
+import { saveProjectSanctionedHeads } from "@/lib/api/projectSanction";
 
 // ============================================
 // PI ROW INTERFACE
@@ -83,6 +85,12 @@ export default function NewProjectPage() {
   // PIs State — start empty, initialize on client only
   const [pis, setPis] = useState<PIRow[]>([]);
 
+  // NEW: Sanctioned Heads State
+  const [headsList, setHeadsList] = useState<BudgetHead[]>([]);
+  const [allocations, setAllocations] = useState<{ budget_head: string; sanctioned_amount: string }[]>([
+    { budget_head: "", sanctioned_amount: "" }
+  ]);
+
   // ============================================
   // INITIALIZE FIRST PI (client-side only)
   // ============================================
@@ -103,18 +111,20 @@ export default function NewProjectPage() {
   }, []);
 
   // ============================================
-  // LOAD DROPDOWNS
+  // LOAD DROPDOWNS & HEADS
   // ============================================
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [agenciesData, departmentsData] = await Promise.all([
+        const [agenciesData, departmentsData, headsData] = await Promise.all([
           getAgencies(),
           getDepartments(),
+          getBudgetHeads(),
         ]);
         setAgencies(agenciesData);
         setDepartments(departmentsData);
+        setHeadsList(headsData || []);
       } catch (err: any) {
         setError("Failed to load dropdown data: " + err.message);
       } finally {
@@ -161,6 +171,29 @@ export default function NewProjectPage() {
   }
 
   // ============================================
+  // NEW: SANCTIONED HEADS HANDLERS
+  // ============================================
+
+  const handleAddHead = () => {
+    setAllocations([...allocations, { budget_head: "", sanctioned_amount: "" }]);
+  };
+
+  const handleRemoveHead = (index: number) => {
+    const newAllocations = [...allocations];
+    newAllocations.splice(index, 1);
+    setAllocations(newAllocations);
+  };
+
+  const handleAllocationChange = (index: number, field: "budget_head" | "sanctioned_amount", value: string) => {
+    const newAllocations = [...allocations];
+    newAllocations[index][field] = value;
+    setAllocations(newAllocations);
+  };
+
+  // Calculate total allocated
+  const totalAllocated = allocations.reduce((sum, item) => sum + (Number(item.sanctioned_amount) || 0), 0);
+
+  // ============================================
   // SUBMIT
   // ============================================
 
@@ -205,6 +238,7 @@ export default function NewProjectPage() {
         start_date: startDate || undefined,
         end_date: endDate || undefined,
         sanctioned_amount: parseFloat(sanctionedAmount),
+        total_sanctioned_amount: parseFloat(sanctionedAmount), // Add total_sanctioned_amount as well
         status: status,
         remarks: remarks,
         pi_name:
@@ -220,7 +254,25 @@ export default function NewProjectPage() {
         })),
       };
 
-      await createProject(payload);
+      // 1. Create Project
+      const newProject: any = await createProject(payload);
+      
+      // 2. Save Sanctioned Heads
+      const validHeads = allocations
+        .filter(a => a.budget_head && Number(a.sanctioned_amount) > 0)
+        .map(a => ({
+          budget_head: Number(a.budget_head),
+          sanctioned_amount: Number(a.sanctioned_amount)
+        }));
+
+      if (validHeads.length > 0) {
+        // newProject.id exists if the API returns the created object
+        const projectId = newProject.id || newProject.data?.id;
+        if (projectId) {
+          await saveProjectSanctionedHeads(projectId, validHeads);
+        }
+      }
+
       setSuccess("Project successfully create ho gaya! 🎉");
 
       setTimeout(() => {
@@ -361,63 +413,73 @@ export default function NewProjectPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              
+              {/* Funding Agency with + Button */}
               <div className="space-y-1.5">
                 <label className="text-slate-700 font-medium text-xs pl-2">
                   Funding Agency
                 </label>
-                <select
-                  value={agencyId}
-                  onChange={(e) =>
-                    setAgencyId(e.target.value ? Number(e.target.value) : "")
-                  }
-                  className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
-                  style={{
-                    boxShadow:
-                      "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff",
-                  }}
-                  disabled={loadingData}
-                >
-                  <option value="">Select Agency</option>
-                  {agencies.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} — {a.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={agencyId}
+                    onChange={(e) => setAgencyId(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
+                    style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                    disabled={loadingData}
+                  >
+                    <option value="">Select Agency</option>
+                    {agencies.map((a) => (
+                      <option key={a.id} value={a.id}>{a.code} — {a.name}</option>
+                    ))}
+                  </select>
+                  <a
+                    href="http://localhost:8000/admin/projects/agency/add/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-blue-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:scale-105 transition-all"
+                    title="Add New Agency"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </a>
+                </div>
               </div>
 
+              {/* Department with + Button */}
               <div className="space-y-1.5">
                 <label className="text-slate-700 font-medium text-xs pl-2">
                   Department
                 </label>
-                <select
-                  value={departmentId}
-                  onChange={(e) =>
-                    setDepartmentId(
-                      e.target.value ? Number(e.target.value) : ""
-                    )
-                  }
-                  className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
-                  style={{
-                    boxShadow:
-                      "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff",
-                  }}
-                  disabled={loadingData}
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.code} — {d.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none"
+                    style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                    disabled={loadingData}
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>{d.code} — {d.name}</option>
+                    ))}
+                  </select>
+                  <a
+                    href="http://localhost:8000/admin/projects/department/add/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-blue-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:scale-105 transition-all"
+                    title="Add New Department"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </a>
+                </div>
               </div>
 
               <NeoInput
                 id="sanctioned_amount"
-                label="Sanctioned Amount (₹) *"
+                label="Total Sanctioned Amount (₹) *"
                 type="number"
-                placeholder="e.g., 5000000"
+                step="0.01"
+                placeholder="e.g. 20000000"
                 value={sanctionedAmount}
                 onChange={(e) => setSanctionedAmount(e.target.value)}
                 required
@@ -425,7 +487,87 @@ export default function NewProjectPage() {
             </div>
           </NeoCard>
 
-          {/* SECTION 3: DURATION */}
+          {/* SECTION 3: SANCTIONED HEADS (NEW) */}
+          <NeoCard>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <NeoIconBox size="md" color="text-indigo-600">
+                  <span className="text-lg">📊</span>
+                </NeoIconBox>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800">
+                    Sanctioned Heads Breakdown
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Divide the total amount into specific budget heads
+                  </p>
+                </div>
+              </div>
+              <NeoButton type="button" variant="secondary" size="sm" onClick={handleAddHead} icon={<Plus className="h-4 w-4" />}>
+                Add Head
+              </NeoButton>
+            </div>
+
+            <div className="space-y-3">
+              {allocations.map((alloc, index) => (
+                <div key={index} className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+                  
+                  {/* Select Head with + Button */}
+                  <div className="flex-1 flex gap-2">
+                    <select
+                      value={alloc.budget_head}
+                      onChange={(e) => handleAllocationChange(index, "budget_head", e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none font-medium"
+                      style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                    >
+                      <option value="">Select Budget Head</option>
+                      {headsList.map(h => (
+                        <option key={h.id} value={h.id}>{h.name}</option>
+                      ))}
+                    </select>
+                    <a
+                      href="http://localhost:8000/admin/funds/budgethead/add/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-indigo-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:scale-105 transition-all"
+                      title="Add New Budget Head"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </a>
+                  </div>
+
+                  {/* Amount Input */}
+                  <div className="w-full md:w-64 shrink-0">
+                    <NeoInput
+                      type="number"
+                      placeholder="Amount (₹)"
+                      value={alloc.sanctioned_amount}
+                      onChange={(e) => handleAllocationChange(index, "sanctioned_amount", e.target.value)}
+                    />
+                  </div>
+
+                  {/* Remove Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHead(index)}
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl text-red-600 bg-[#e0e5ec] shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:text-red-700 transition-all"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Total Display */}
+            <div className="mt-4 flex justify-end border-t border-slate-300 pt-4">
+              <p className="text-sm font-bold text-slate-700">
+                Total Allocated: <span className={totalAllocated === Number(sanctionedAmount) ? "text-green-600" : "text-orange-500"}>₹ {totalAllocated.toLocaleString("en-IN")}</span>
+                <span className="text-slate-400 ml-2">/ ₹ {Number(sanctionedAmount || 0).toLocaleString("en-IN")}</span>
+              </p>
+            </div>
+          </NeoCard>
+
+          {/* SECTION 4: DURATION */}
           <NeoCard>
             <div className="flex items-center gap-3 mb-6">
               <NeoIconBox size="md" color="text-purple-600">
@@ -457,7 +599,7 @@ export default function NewProjectPage() {
             </div>
           </NeoCard>
 
-          {/* SECTION 4: PIs */}
+          {/* SECTION 5: PIs */}
           <NeoCard>
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
@@ -615,7 +757,7 @@ export default function NewProjectPage() {
             )}
           </NeoCard>
 
-          {/* SECTION 5: STATUS */}
+          {/* SECTION 6: STATUS */}
           <NeoCard>
             <div className="flex items-center gap-3 mb-6">
               <NeoIconBox size="md" color="text-cyan-600">

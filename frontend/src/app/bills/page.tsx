@@ -179,8 +179,9 @@ export default function BillsPage() {
         </div>
 
         {/* Stats */}
+        {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             <NeoCard hover>
               <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
                 Total Bills
@@ -192,16 +193,20 @@ export default function BillsPage() {
 
             <NeoCard hover>
               <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                Total Gross
+              </p>
+              <p className="text-2xl font-bold text-indigo-600">
+                {formatAmount(totalGross)}
+              </p>
+            </NeoCard>
+
+            <NeoCard hover>
+              <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
                 Total Payable
               </p>
-              <p className="text-2xl font-bold text-green-600 mb-2">
+              <p className="text-2xl font-bold text-green-600">
                 {formatAmount(stats.total_payable)}
               </p>
-              <div className="inline-block px-2.5 py-1 rounded-lg bg-indigo-100/60 border border-indigo-200/50">
-                <p className="text-xs font-bold text-indigo-800">
-                  Gross: {formatAmount(totalGross)}
-                </p>
-              </div>
             </NeoCard>
 
             <NeoCard hover>
@@ -390,14 +395,14 @@ export default function BillsPage() {
                       </div>
 
                       <div className="text-right flex flex-col items-end">
-                        <p className="text-xl font-bold text-green-600">
+                        <p className="text-x5 font-bold text-green-600">
                           {formatAmount(bill.total_payable)}
                         </p>
                         <p className="text-xs text-slate-500 font-semibold mb-1">Total Payable</p>
                         
                         {/* Show Gross Amount as a small sub-text */}
                         {grossAmount > 0 && (
-                        <p className="text-xs font-bold text-indigo-800 bg-indigo-100/60 px-2.5 py-1 rounded-lg mt-1.5 shadow-sm border border-indigo-200/50">
+                        <p className="text-x1 font-bold text-indigo-800 bg-indigo-100/60 px-1.5 py-1 rounded-lg mt-1.5 shadow-sm border border-indigo-200/50">
                         Gross: {formatAmount(grossAmount)}
                         </p>
                         )}

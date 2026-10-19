@@ -420,3 +420,96 @@ def budget_overview(request):
         },
         'projects': project_list,
     })
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.db.models import Q
+from projects.models import Project
+from vendors.models import Vendor
+from purchase.models import PurchaseOrder
+from bills.models import BillEntry
+
+@api_view(['GET'])
+def global_search(request):
+    query = request.query_params.get('q', '').strip()
+    
+    # Agar 2 letter se chota search hai to khali return karo
+    if not query or len(query) < 2:
+        return Response({'projects': [], 'bills': [], 'vendors': [], 'purchase_orders': []})
+
+    # 1. Projects
+    projects = Project.objects.filter(
+        Q(project_code__icontains=query) | Q(project_name__icontains=query),
+        is_deleted=False
+    )[:5]
+
+    # 2. Bills (Form 5)
+    bills = BillEntry.objects.filter(
+        Q(bill_no__icontains=query) | Q(recipient_name__icontains=query) | Q(document_no__icontains=query),
+        is_deleted=False
+    )[:5]
+
+    # 3. Vendors (Dhyan rahe: agar Vendor model me 'name' field nahi hai, to use apne hisaab se badalna, jaise 'firm_name')
+    try:
+        vendors = Vendor.objects.filter(
+            Q(name__icontains=query) | Q(firm_name__icontains=query),
+            is_deleted=False
+        )[:5]
+    except:
+        vendors = Vendor.objects.filter(is_deleted=False)[:0] # Fallback
+
+    # 4. Purchase Orders
+    pos = PurchaseOrder.objects.filter(
+        Q(po_number__icontains=query),
+        is_deleted=False
+    )[:5]
+
+    # Response format
+    return Response({
+        'projects': [{'id': p.id, 'title': p.project_name, 'subtitle': p.project_code, 'url': f"/projects/{p.id}"} for p in projects],
+        'bills': [{'id': b.id, 'title': b.bill_no, 'subtitle': b.recipient_name, 'url': f"/bills/{b.id}"} for b in bills],
+        'vendors': [{'id': v.id, 'title': getattr(v, 'name', getattr(v, 'firm_name', 'Vendor')), 'subtitle': 'Vendor', 'url': f"/vendors/{v.id}"} for v in vendors],
+        'purchase_orders': [{'id': po.id, 'title': po.po_number, 'subtitle': 'Purchase Order', 'url': f"/purchase/{po.id}"} for po in pos],
+    })
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from projects.models import Project, ProjectSanctionedHead
+from funds.models import BudgetHead
+
+@api_view(['GET', 'POST'])
+def project_sanctioned_heads(request, project_id):
+    project = get_object_or_404(Project, id=project_id, is_deleted=False)
+
+    if request.method == 'GET':
+        heads = ProjectSanctionedHead.objects.filter(project=project, is_deleted=False)
+        data = [{
+            'id': h.id,
+            'budget_head': h.budget_head_id,
+            'budget_head_name': h.budget_head.name,
+            'sanctioned_amount': float(h.sanctioned_amount)
+        } for h in heads]
+        return Response(data)
+
+    elif request.method == 'POST':
+        # Expecting body: { "heads": [ {"budget_head": 1, "sanctioned_amount": 500000}, ... ] }
+        heads_data = request.data.get('heads', [])
+        
+        # Delete existing ones for this project (to replace with new)
+        ProjectSanctionedHead.objects.filter(project=project).delete()
+
+        created = []
+        for item in heads_data:
+            head_id = item.get('budget_head')
+            amount = item.get('sanctioned_amount', 0)
+            
+            if head_id and float(amount) > 0:
+                budget_head = BudgetHead.objects.get(id=head_id)
+                obj = ProjectSanctionedHead.objects.create(
+                    project=project,
+                    budget_head=budget_head,
+                    sanctioned_amount=amount
+                )
+                created.append(obj)
+
+        return Response({'message': 'Sanctioned heads saved successfully', 'count': len(created)})

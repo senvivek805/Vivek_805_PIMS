@@ -24,6 +24,7 @@ import {
   PackageMinus,
   FileCheck,
   FolderOpen,
+  FileSpreadsheet,
   Undo2
 } from "lucide-react";
 
@@ -76,6 +77,7 @@ const menuItems: MenuItem[] = [
   { href: "/bills", label: "Bills", icon: FileText },
   { href: "/services", label: "Service Completions", icon: FileCheck },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/uc", label: "Utilization Cert. (UC)", icon: FileSpreadsheet },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

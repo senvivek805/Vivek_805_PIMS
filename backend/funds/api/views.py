@@ -5,7 +5,9 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from funds.models import FundReceipt, BudgetCategory, BudgetHead, FundBreakup
-from projects.models import Project
+from projects.models import Project, ProjectSanctionedHead
+from bills.models import BillEntry
+
 from .serializers import (
     FundReceiptListSerializer,
     FundReceiptDetailSerializer,
@@ -336,8 +338,6 @@ def budget_overview(request):
     Budget overview — FY-wise, Project-wise summary.
     All FundBreakups ka aggregate with spent & balance.
     """
-    from django.db.models import Sum
-
     fy = request.query_params.get('fy')  # e.g., '2024-25'
     project_id = request.query_params.get('project')
 
@@ -473,4 +473,134 @@ def budget_overview(request):
         'head_wise': head_wise,
         'project_wise': project_wise,
         'available_fys': list(all_fys),
+    })
+
+
+# ============================================
+# UC DATA API
+# ============================================
+
+@api_view(['GET'])
+def project_uc_data(request, project_id):
+    try:
+        project = Project.objects.get(id=project_id, is_deleted=False)
+    except Project.DoesNotExist:
+        return Response({'error': 'Project not found'}, status=404)
+
+    # 1. Get all FYs for this project
+    fys = list(FundReceipt.objects.filter(
+        project=project, is_deleted=False
+    ).values_list('financial_year', flat=True).distinct().order_by('financial_year'))
+
+    # 2. Get Sanctioned Amounts per Head
+    sanctioned_heads = ProjectSanctionedHead.objects.filter(project=project, is_deleted=False)
+    sanctioned_map = {sh.budget_head_id: float(sh.sanctioned_amount) for sh in sanctioned_heads}
+
+    # 3. Get breakups
+    breakups = FundBreakup.objects.filter(
+        fund_receipt__project=project, 
+        is_deleted=False
+    ).select_related('budget_head', 'budget_head__category', 'fund_receipt')
+    
+    head_ids = set(sanctioned_map.keys())
+    for b in breakups:
+        if b.budget_head:
+            head_ids.add(b.budget_head_id)
+            
+    heads_dict = {}
+    
+    # Initialize heads
+    for head_id in head_ids:
+        try:
+            head = BudgetHead.objects.get(id=head_id)
+        except BudgetHead.DoesNotExist:
+            continue
+            
+        head_name_lower = head.name.lower()
+        is_non_recurring = 'equipment' in head_name_lower or 'machinery' in head_name_lower
+        category = 'Non-Recurring' if is_non_recurring else 'Recurring'
+        
+        heads_dict[head_id] = {
+            'head_id': head.id,
+            'head_name': head.name,
+            'category': category,
+            'total_sanctioned': sanctioned_map.get(head_id, 0.0),
+            'fys': {}
+        }
+
+    # Populate breakups
+    for b in breakups:
+        if not b.budget_head:
+            continue
+        head_id = b.budget_head_id
+        if head_id not in heads_dict:
+            continue
+            
+        fy = b.fund_receipt.financial_year
+        if fy not in heads_dict[head_id]['fys']:
+            heads_dict[head_id]['fys'][fy] = {'allocated': 0, 'spent': 0}
+            
+        heads_dict[head_id]['fys'][fy]['allocated'] += float(b.amount)
+
+    # Fallback: If total_sanctioned is 0, use the allocated amount from breakups
+    for head_id, data in heads_dict.items():
+        if data['total_sanctioned'] == 0:
+            total_alloc = sum(fy['allocated'] for fy in data['fys'].values())
+            data['total_sanctioned'] = total_alloc
+
+    # 4. Calculate Spent (from BillEntry)
+    bills = BillEntry.objects.filter(
+        project=project,
+        status__in=['approved', 'paid'],
+        is_deleted=False,
+        budget_head__isnull=False
+    )
+    
+    for bill in bills:
+        head_id = bill.budget_head.id
+        if head_id in heads_dict:
+            year = bill.bill_date.year
+            month = bill.bill_date.month
+            fy_start = year if month >= 4 else year - 1
+            fy_str = f"{fy_start}-{str(fy_start + 1)[-2:]}"
+            
+            if fy_str in heads_dict[head_id]['fys']:
+                gross = float(bill.bill_amount) + float(bill.cgst_amount) + float(bill.sgst_amount) + float(bill.igst_amount) + float(bill.other_charges)
+                heads_dict[head_id]['fys'][fy_str]['spent'] += gross
+
+    # 5. Format Response
+    result_heads = []
+    for head_id, data in heads_dict.items():
+        fy_data = []
+        for fy in fys:
+            alloc = data['fys'].get(fy, {}).get('allocated', 0)
+            spent = data['fys'].get(fy, {}).get('spent', 0)
+            fy_data.append({
+                'fy': fy,
+                'allocated': alloc,
+                'spent': spent,
+                'balance': alloc - spent
+            })
+            
+        result_heads.append({
+            'head_id': head_id,
+            'head_name': data['head_name'],
+            'category': data['category'],
+            'total_sanctioned': data['total_sanctioned'],
+            'fy_data': fy_data
+        })
+
+    result_heads.sort(key=lambda x: (0 if 'Non-Recurring' in x['category'] else 1, x['head_name']))
+
+    return Response({
+        'project': {
+            'id': project.id,
+            'code': project.project_code,
+            'name': project.project_name,
+            'pi': project.project_pis.first().name if hasattr(project, 'project_pis') and project.project_pis.exists() else (project.pis.first().name if hasattr(project, 'pis') and project.pis.exists() else "N/A"),
+            'agency': project.agency.name if project.agency else "N/A",
+            'total_sanctioned_amount': float(project.total_sanctioned_amount or 0)
+        },
+        'fys': fys,
+        'heads': result_heads
     })

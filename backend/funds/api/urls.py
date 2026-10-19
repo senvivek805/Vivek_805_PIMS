@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from funds.api.views import project_uc_data
 
 app_name = 'funds_api'
 
@@ -36,4 +37,5 @@ urlpatterns = [
     # BUDGET OVERVIEW
     # ============================================
     path('budget/overview/', views.budget_overview, name='budget-overview'),
+    path('projects/<int:project_id>/uc-data/', project_uc_data, name='project-uc-data'),
 ]
