@@ -387,3 +387,16 @@ notepad PROJECT-CONTEXT.md
 ### Kal Ka Plan (Pending)
 - [ ] Document Upload Module
 - [ ] Utilization Certificate (UC) generation
+## ✅ Aaj Ka Kaam (19 Oct 2026)
+
+### Documents Module
+- [x] Backend: Document Model, Serializers, Views, URLs
+- [x] File Upload API (MultiPartParser)
+- [x] Media serving setup in `config/urls.py`
+- [x] Frontend: API Client (`documents.ts`)
+- [x] Frontend: Document List & Upload Modal Page
+- [x] `csrf.ts` updated to handle FormData headers
+- [x] File View & Delete functionality
+
+### Next Pending
+- [ ] Utilization Certificate (UC) generation
