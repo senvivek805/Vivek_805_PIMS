@@ -400,3 +400,31 @@ notepad PROJECT-CONTEXT.md
 
 ### Next Pending
 - [ ] Utilization Certificate (UC) generation
+## ✅ Aaj Ka Kaam (19 Oct 2026 - Part 2)
+
+### Global Search
+- [x] Header me Global Search (Projects, Bills, Vendors, POs) add kiya.
+- [x] API `global-search` endpoint banaya.
+
+### Reports & UI Polish
+- [x] Bill & Vendor Reports me alag-alag columns (Project Code & Vendor).
+- [x] Reports me Search Bar aur Project Filter add kiya.
+- [x] Accounting logic fix: Gross Amount vs Net Payable.
+
+### Documents Module
+- [x] Backend model, API (File Upload), Media serving setup.
+- [x] Frontend Document List, Upload Modal, View & Delete functionality.
+
+### Utilization Certificate (UC)
+- [x] Backend API for Head-wise & FY-wise data (`project_uc_data`).
+- [x] Frontend UC Print Page exact IIT(BHU) format me banaya.
+- [x] Sidebar me UC ka link add kiya.
+
+### Project Sanctioned Heads
+- [x] `ProjectSanctionedHead` model (Project ke heads me amount divide karne ke liye).
+- [x] New & Edit Project form me "Sanctioned Heads Breakdown" add kiya.
+- [x] Dropdown ke bagal me `+` button lagaya (direct Admin add ke liye).
+
+### Kal Ka Plan
+- [ ] Service Completion/UC Documents ko link karna.
+- [ ] Dashboard stats update karna.
