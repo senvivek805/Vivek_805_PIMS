@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'materials',
     'bills',
     'service_completion',
+    'documents',
 ]
 
 # ============================================

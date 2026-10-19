@@ -23,6 +23,7 @@ import {
   PackageCheck,
   PackageMinus,
   FileCheck,
+  FolderOpen,
   Undo2
 } from "lucide-react";
 
@@ -48,6 +49,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/documents", label: "Documents", icon: FolderOpen },
   {
     href: "/funds",
     label: "Fund Receipts",

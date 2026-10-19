@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 
 # PIMS Admin Branding
@@ -35,4 +37,8 @@ urlpatterns = [
     # API — Bills
     path('api/', include('bills.api.urls')),
     path('api/', include('service_completion.api.urls')),
+    path('api/', include('documents.api.urls')),
 ]
+# Media files serve karne ke liye (Development me)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
