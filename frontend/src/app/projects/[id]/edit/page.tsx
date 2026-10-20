@@ -101,7 +101,11 @@ export default function EditProjectPage() {
         setAgencyId(projData.agency || "");
         setDepartmentId(projData.department || "");
         // Fallback to sanctioned_amount if total_sanctioned_amount is 0
-        setSanctionedAmount(String(projData.total_sanctioned_amount || projData.sanctioned_amount || ""));
+        // Exact Fallback logic
+        const fetchTotal = Number(projData.total_sanctioned_amount);
+        const fetchSanctioned = Number(projData.sanctioned_amount);
+        const correctAmount = fetchTotal > 0 ? fetchTotal : fetchSanctioned;
+        setSanctionedAmount(correctAmount > 0 ? String(correctAmount) : "");
         setStartDate(projData.start_date || "");
         setEndDate(projData.end_date || "");
         setStatus(projData.status || "active");

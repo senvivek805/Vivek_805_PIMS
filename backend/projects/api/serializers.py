@@ -80,6 +80,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
             'pi_name', 'co_pi_name', 'coordinator_name',
             'pi_names', 'co_pi_names',
             'sanctioned_amount',
+            'total_sanctioned_amount',
             'status', 'status_display',
             'remarks',
             'created_at', 'updated_at',

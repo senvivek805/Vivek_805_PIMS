@@ -114,7 +114,7 @@ export interface BillEntryCreateUpdate {
   status?: BillStatus;
   remarks?: string;
   items?: BillEntryItem[];
-    penalty?: number;
+  penalty?: number;
   penalty_applicable?: boolean;
   pbg_security?: number;
   pbg_applicable?: boolean;
@@ -125,6 +125,7 @@ export interface BillEntryCreateUpdate {
 export interface BillEntryStats {
   total_bills: number;
   total_payable: number;
+  total_gross: number;
   status_wise: {
     status: string;
     label: string;

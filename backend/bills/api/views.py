@@ -135,6 +135,18 @@ def bill_entry_stats(request):
         total=Sum('total_payable')
     )['total'] or 0
 
+    # Calculate Total Gross Amount
+    total_gross = 0
+    for bill in bills:
+        gross = (
+            float(bill.bill_amount or 0) +
+            float(bill.cgst_amount or 0) +
+            float(bill.sgst_amount or 0) +
+            float(bill.igst_amount or 0) +
+            float(bill.other_charges or 0)
+        )
+        total_gross += gross
+
     status_wise = []
     status_choices = [
         ('draft', 'Draft'),
@@ -158,5 +170,6 @@ def bill_entry_stats(request):
     return Response({
         'total_bills': total,
         'total_payable': float(total_payable),
+        'total_gross': float(total_gross), # <-- YE NAYI LINE ADD HUI HAI
         'status_wise': status_wise,
     })
