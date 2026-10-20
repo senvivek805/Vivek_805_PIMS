@@ -428,3 +428,25 @@ notepad PROJECT-CONTEXT.md
 ### Kal Ka Plan
 - [ ] Service Completion/UC Documents ko link karna.
 - [ ] Dashboard stats update karna.
+## ✅ Aaj Ka Kaam (20 Oct 2026 - Part 2)
+
+### Fund Receipt Fixes
+- [x] Fund Receipt Edit page banaya (404 error fix).
+- [x] Fund Type "Grant" valid choice error fix (lowercase values use kiye).
+
+### Bill Payment Tracking (Finance)
+- [x] Backend: `payment_date`, `utr_number`, `payment_remarks` fields add kiye.
+- [x] Database migration chala kar 500 Error (column does not exist) fix kiya.
+- [x] Frontend: Bill Edit page me "Payment Details" ka section add kiya.
+- [x] Frontend: Bill View page me Payment Details dikhne laga.
+
+### Dashboard & Project Fixes
+- [x] Dashboard me **Project Filter** (Global vs Specific Project) kaam kar raha hai.
+- [x] Specific project select karne par saare modules, charts, POs aur stats us project ke hisaab se filter hote hain.
+- [x] Amount formatting fix ki (1.99 Cr ko 2.00 Cr dikhne se roka, exact amount bhi add kiya).
+- [x] `ProjectCreateUpdateSerializer` me `total_sanctioned_amount` add kiya (ab Project form se amount save hota hai).
+
+### Kal Ka Plan (Pending)
+- [ ] Role-Based Access Control (RBAC) implement karna.
+- [ ] UI Polish (Liquid Glass theme).
+- [ ] Bulk Data Import.
