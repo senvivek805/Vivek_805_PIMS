@@ -330,6 +330,25 @@ class BillEntry(BaseModel):
         blank=True,
         verbose_name='RTGS Purpose'
     )
+    # ============================================
+    # PAYMENT TRACKING
+    # ============================================
+    payment_date = models.DateField(
+        null=True, 
+        blank=True, 
+        verbose_name='Payment Date'
+    )
+    utr_number = models.CharField(
+        max_length=100, 
+        blank=True, 
+        verbose_name='UTR / Transaction Reference No.',
+        help_text='Bank Transaction ID / UTR Number'
+    )
+    payment_remarks = models.TextField(
+        blank=True, 
+        verbose_name='Payment Remarks',
+        help_text='Any specific notes regarding the payment'
+    )
 
     # ============================================
     # STATUS & EXTRA

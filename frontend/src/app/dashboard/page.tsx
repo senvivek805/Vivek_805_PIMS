@@ -35,6 +35,7 @@ import {
 import {
   getProjects,
   getProjectStats,
+  getProject,
   type Project,
   type ProjectStats,
 } from "@/lib/api/projects";
@@ -78,6 +79,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedProject, setSelectedProject] = useState<string>("");
+  const [selectedProjectData, setSelectedProjectData] = useState<Project | null>(null);
 
   // ============================================
   // LOAD ALL DATA
@@ -148,11 +150,30 @@ export default function DashboardPage() {
     loadBudgetData();
   }, [selectedProject]);
 
+  // Fetch specific project details when selected
+  useEffect(() => {
+    if (selectedProject) {
+      async function fetchProjectDetails() {
+        try {
+          const data = await getProject(Number(selectedProject));
+          setSelectedProjectData(data);
+        } catch (err) {
+          console.error("Failed to load project details", err);
+        }
+      }
+      fetchProjectDetails();
+    } else {
+      setSelectedProjectData(null);
+    }
+  }, [selectedProject]);
+
   // ============================================
   // DERIVED (FILTERED) DATA BASED ON SELECTION
   // ============================================
   const isGlobal = !selectedProject;
-  const activeProjectObj = projectsList.find(p => String(p.id) === selectedProject);
+  
+  // 👇 YAHAN FIX HUA HAI (Ab yeh selectedProjectData use karega)
+  const activeProjectObj = selectedProjectData || projectsList.find(p => String(p.id) === selectedProject);
 
   // 1. Projects Stats
   const displayTotalProjects = isGlobal ? (stats?.total_projects || 0) : 1;

@@ -80,6 +80,9 @@ export interface BillEntry {
   pbg_applicable?: boolean;
   other_charges?: string | number;
   other_charges_remarks?: string;
+  payment_date?: string | null;
+  utr_number?: string;
+  payment_remarks?: string;
 }
 
 export interface BillEntryCreateUpdate {
@@ -120,6 +123,9 @@ export interface BillEntryCreateUpdate {
   pbg_applicable?: boolean;
   other_charges?: number;
   other_charges_remarks?: string;
+  payment_date?: string | null;
+  utr_number?: string;
+  payment_remarks?: string;
 }
 
 export interface BillEntryStats {

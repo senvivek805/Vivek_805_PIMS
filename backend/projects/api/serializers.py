@@ -146,7 +146,9 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
             'agency', 'department',
             'start_date', 'end_date',
             'pi_name', 'co_pi_name', 'coordinator_name',
-            'sanctioned_amount', 'status', 'remarks',
+            'sanctioned_amount', 
+            'total_sanctioned_amount', # <-- Ye nayi line add ki hai
+            'status', 'remarks',
             'pis',
         ]
 

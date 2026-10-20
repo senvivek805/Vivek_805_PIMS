@@ -146,6 +146,11 @@ export default function EditBillPage() {
   const [status, setStatus] = useState<BillStatus>("draft");
   const [remarks, setRemarks] = useState("");
 
+  // NEW: Payment Tracking States
+  const [paymentDate, setPaymentDate] = useState("");
+  const [utrNumber, setUtrNumber] = useState("");
+  const [paymentRemarks, setPaymentRemarks] = useState("");
+
   // Line Items
   const [items, setItems] = useState<LineItemRow[]>([
     {
@@ -294,6 +299,11 @@ export default function EditBillPage() {
 
         setStatus(bill.status || "draft");
         setRemarks(bill.remarks || "");
+
+        // Set Payment Tracking Data
+        setPaymentDate((bill as any).payment_date || "");
+        setUtrNumber((bill as any).utr_number || "");
+        setPaymentRemarks((bill as any).payment_remarks || "");
 
         // Items
         if (bill.items && bill.items.length > 0) {
@@ -547,6 +557,12 @@ export default function EditBillPage() {
         rtgs_purpose: rtgsPurpose || undefined,
         status: status,
         remarks: remarks || undefined,
+        
+        // NEW: Payment Tracking Payload
+        payment_date: paymentDate || null,
+        utr_number: utrNumber || undefined,
+        payment_remarks: paymentRemarks || undefined,
+        
         items: items
           .filter((it) => it.particulars.trim())
           .map((it, idx) => ({
@@ -1634,9 +1650,9 @@ export default function EditBillPage() {
           </div>
         </NeoCard>
 
-        {/* SECTION 7: STATUS */}
+        {/* SECTION 7: STATUS & PAYMENT DETAILS (UPDATED) */}
         <NeoCard>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6 border-b border-slate-200 pb-6">
             <div className="space-y-1.5">
               <label className="text-slate-700 font-medium text-xs pl-2">
                 Status
@@ -1663,6 +1679,45 @@ export default function EditBillPage() {
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
             />
+          </div>
+
+          {/* NEW: PAYMENT DETAILS */}
+          <div className="flex items-center gap-3 mb-4">
+            <NeoIconBox size="md" color="text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+            </NeoIconBox>
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Payment Details</h2>
+              <p className="text-xs text-slate-500">Fill these details once the bill is paid</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <NeoInput
+              id="payment_date"
+              label="Payment Date"
+              type="date"
+              value={paymentDate}
+              onChange={(e) => setPaymentDate(e.target.value)}
+            />
+            <NeoInput
+              id="utr_number"
+              label="UTR / Transaction Ref No."
+              placeholder="e.g. SBI123456789"
+              value={utrNumber}
+              onChange={(e) => setUtrNumber(e.target.value)}
+            />
+            <div className="md:col-span-2">
+              <label className="text-slate-700 font-medium text-xs pl-2">Payment Remarks</label>
+              <textarea
+                rows={2}
+                value={paymentRemarks}
+                onChange={(e) => setPaymentRemarks(e.target.value)}
+                className="w-full mt-1.5 p-4 rounded-xl bg-[#e0e5ec] text-sm text-slate-700 border-0 outline-none font-medium resize-none"
+                style={{ boxShadow: "inset 3px 3px 6px #b8bcc2, inset -3px -3px 6px #ffffff" }}
+                placeholder="Any specific payment notes..."
+              />
+            </div>
           </div>
         </NeoCard>
 
