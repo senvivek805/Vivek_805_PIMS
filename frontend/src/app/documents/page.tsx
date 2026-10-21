@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermissions } from "@/hooks/usePermissions";
 import { useEffect, useState, useRef } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox, NeoBadge } from "@/components/neumorphism";
@@ -8,6 +9,9 @@ import { getDocuments, createDocument, deleteDocument, type Document } from "@/l
 import { getProjects, type Project } from "@/lib/api/projects";
 
 export default function DocumentsPage() {
+  // 👇 NEW: RBAC Hook
+  const { canCreate, canDelete } = usePermissions();
+
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,9 +109,13 @@ export default function DocumentsPage() {
               <p className="text-sm text-slate-500">Manage project files and certificates</p>
             </div>
           </div>
-          <NeoButton variant="primary" icon={<Upload className="h-4 w-4" />} onClick={() => setIsModalOpen(true)}>
-            Upload Document
-          </NeoButton>
+          
+          {/* 👇 NEW: RBAC applied */}
+          {canCreate && (
+            <NeoButton variant="primary" icon={<Upload className="h-4 w-4" />} onClick={() => setIsModalOpen(true)}>
+              Upload Document
+            </NeoButton>
+          )}
         </div>
 
         {/* Content */}
@@ -121,7 +129,11 @@ export default function DocumentsPage() {
               <FolderOpen className="h-16 w-16 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-slate-700">No documents found</h3>
               <p className="text-sm text-slate-500 mb-6">Upload files like UC, Invoices, Agreements etc.</p>
-              <NeoButton variant="primary" onClick={() => setIsModalOpen(true)}>Upload First Document</NeoButton>
+              
+              {/* 👇 NEW: RBAC applied */}
+              {canCreate && (
+                <NeoButton variant="primary" onClick={() => setIsModalOpen(true)}>Upload First Document</NeoButton>
+              )}
             </div>
           </NeoCard>
         ) : (
@@ -149,9 +161,13 @@ export default function DocumentsPage() {
                         View File
                         </a>
                     )}
-                    <button onClick={() => handleDelete(doc.id!)} className="h-8 w-8 rounded-lg flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    
+                    {/* 👇 NEW: RBAC applied */}
+                    {canDelete && (
+                      <button onClick={() => handleDelete(doc.id!)} className="h-8 w-8 rounded-lg flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </NeoCard>

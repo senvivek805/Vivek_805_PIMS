@@ -450,3 +450,22 @@ notepad PROJECT-CONTEXT.md
 - [ ] Role-Based Access Control (RBAC) implement karna.
 - [ ] UI Polish (Liquid Glass theme).
 - [ ] Bulk Data Import.
+## ✅ Aaj Ka Kaam (21 Oct 2026)
+
+### Frontend Role-Based Access Control (RBAC)
+- [x] Naya custom hook banaya: `src/hooks/usePermissions.ts` (Admin, Manager, Operator, Viewer ke hisaab se permissions).
+- [x] `Superuser` ke liye override logic add kiya (taaki admin ko sab kuch dikhe).
+- [x] Saare major modules me buttons ko permission ke hisaab se hide/show kiya:
+  - [x] Projects
+  - [x] Bills (Form 5)
+  - [x] Vendors
+  - [x] Employees
+  - [x] Purchase Orders
+  - [x] Materials
+  - [x] Service Completions
+  - [x] Documents
+  - [x] Fund Receipts
+- [x] `New`, `Edit`, aur `Delete` buttons ab sirf authorized users ko dikhte hain.
+
+### Next Pending
+- [ ] **Backend API Security (RBAC)** — Taaki koi direct API se unauthorized data delete/edit na kar sake.

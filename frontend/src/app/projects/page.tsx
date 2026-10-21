@@ -27,8 +27,13 @@ import {
   type Project,
   type ProjectStats,
 } from "@/lib/api/projects";
+// NEW: Permission Hook
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function ProjectsPage() {
+  // NEW: Get permissions
+  const { canCreate, canEdit, canDelete } = usePermissions();
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState<ProjectStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -161,15 +166,19 @@ export default function ProjectsPage() {
             >
               Refresh
             </NeoButton>
-            <Link href="/projects/new">
-              <NeoButton
-                variant="primary"
-                size="md"
-                icon={<Plus className="h-4 w-4" />}
-              >
-                New Project
-              </NeoButton>
-            </Link>
+            
+            {/* NEW: canCreate Check */}
+            {canCreate && (
+              <Link href="/projects/new">
+                <NeoButton
+                  variant="primary"
+                  size="md"
+                  icon={<Plus className="h-4 w-4" />}
+                >
+                  New Project
+                </NeoButton>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -302,11 +311,15 @@ export default function ProjectsPage() {
                   ? "Try adjusting your search or filters"
                   : "Get started by creating your first project"}
               </p>
-              <Link href="/projects/new">
-                <NeoButton variant="primary" icon={<Plus className="h-4 w-4" />}>
-                  Create Project
-                </NeoButton>
-              </Link>
+              
+              {/* NEW: canCreate Check */}
+              {canCreate && (
+                <Link href="/projects/new">
+                  <NeoButton variant="primary" icon={<Plus className="h-4 w-4" />}>
+                    Create Project
+                  </NeoButton>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -394,32 +407,38 @@ export default function ProjectsPage() {
                           </button>
                         </Link>
 
-                        <Link href={`/projects/${project.id}/edit`}>
+                        {/* NEW: canEdit Check */}
+                        {canEdit && (
+                          <Link href={`/projects/${project.id}/edit`}>
+                            <button
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                              style={{
+                                background: "#e0e5ec",
+                                boxShadow:
+                                  "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
+                              }}
+                              title="Edit"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                          </Link>
+                        )}
+
+                        {/* NEW: canDelete Check */}
+                        {canDelete && (
                           <button
-                            className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                            onClick={() => openDeleteModal(project)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
                             style={{
                               background: "#e0e5ec",
                               boxShadow:
                                 "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
                             }}
-                            title="Edit"
+                            title="Delete"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                        </Link>
-
-                        <button
-                          onClick={() => openDeleteModal(project)}
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
-                          style={{
-                            background: "#e0e5ec",
-                            boxShadow:
-                              "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
-                          }}
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        )}
                       </div>
                     </div>
                   </div>

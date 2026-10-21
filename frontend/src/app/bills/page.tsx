@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermissions } from "@/hooks/usePermissions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
@@ -38,6 +39,9 @@ import {
 } from "@/lib/api/bills";
 
 export default function BillsPage() {
+  // 👇 NEW: Hook call kiya
+  const { canCreate, canEdit, canDelete } = usePermissions();
+
   const [bills, setBills] = useState<BillEntry[]>([]);
   const [stats, setStats] = useState<BillEntryStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,19 +170,22 @@ export default function BillsPage() {
             >
               Refresh
             </NeoButton>
-            <Link href="/bills/new">
-              <NeoButton
-                variant="primary"
-                size="md"
-                icon={<Plus className="h-4 w-4" />}
-              >
-                New Bill
-              </NeoButton>
-            </Link>
+            
+            {/* 👇 NEW: RBAC applied */}
+            {canCreate && (
+              <Link href="/bills/new">
+                <NeoButton
+                  variant="primary"
+                  size="md"
+                  icon={<Plus className="h-4 w-4" />}
+                >
+                  New Bill
+                </NeoButton>
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Stats */}
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
@@ -317,14 +324,18 @@ export default function BillsPage() {
                   ? "Try adjusting your search or filters"
                   : "Get started by creating your first bill"}
               </p>
-              <Link href="/bills/new">
-                <NeoButton
-                  variant="primary"
-                  icon={<Plus className="h-4 w-4" />}
-                >
-                  Create Bill Entry
-                </NeoButton>
-              </Link>
+              
+              {/* 👇 NEW: RBAC applied */}
+              {canCreate && (
+                <Link href="/bills/new">
+                  <NeoButton
+                    variant="primary"
+                    icon={<Plus className="h-4 w-4" />}
+                  >
+                    Create Bill Entry
+                  </NeoButton>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -373,7 +384,6 @@ export default function BillsPage() {
                             👤 {bill.recipient_name}
                           </span>
                           
-                          {/* DUPLICATE FIX: Sirf tab dikhao jab vendor alag ho */}
                           {bill.vendor_name && bill.vendor_name !== bill.recipient_name && (
                             <span className="flex items-center gap-1">
                               <Building2 className="h-3 w-3" />
@@ -395,14 +405,14 @@ export default function BillsPage() {
                       </div>
 
                       <div className="text-right flex flex-col items-end">
-                        <p className="text-x5 font-bold text-green-600">
+                        <p className="text-xl font-bold text-green-600">
                           {formatAmount(bill.total_payable)}
                         </p>
                         <p className="text-xs text-slate-500 font-semibold mb-1">Total Payable</p>
                         
                         {/* Show Gross Amount as a small sub-text */}
                         {grossAmount > 0 && (
-                        <p className="text-x1 font-bold text-indigo-800 bg-indigo-100/60 px-1.5 py-1 rounded-lg mt-1.5 shadow-sm border border-indigo-200/50">
+                        <p className="text-xs font-bold text-indigo-800 bg-indigo-100/60 px-2.5 py-1 rounded-lg mt-1.5 shadow-sm border border-indigo-200/50">
                         Gross: {formatAmount(grossAmount)}
                         </p>
                         )}
@@ -423,32 +433,38 @@ export default function BillsPage() {
                           </button>
                         </Link>
 
-                        <Link href={`/bills/${bill.id}/edit`}>
+                        {/* 👇 NEW: RBAC applied */}
+                        {canEdit && (
+                          <Link href={`/bills/${bill.id}/edit`}>
+                            <button
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                              style={{
+                                background: "#e0e5ec",
+                                boxShadow:
+                                  "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
+                              }}
+                              title="Edit"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                          </Link>
+                        )}
+
+                        {/* 👇 NEW: RBAC applied */}
+                        {canDelete && (
                           <button
-                            className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                            onClick={() => setDeleteTarget(bill)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
                             style={{
                               background: "#e0e5ec",
                               boxShadow:
                                 "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
                             }}
-                            title="Edit"
+                            title="Delete"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                        </Link>
-
-                        <button
-                          onClick={() => setDeleteTarget(bill)}
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
-                          style={{
-                            background: "#e0e5ec",
-                            boxShadow:
-                              "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
-                          }}
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        )}
                       </div>
                     </div>
                   </div>

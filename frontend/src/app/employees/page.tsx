@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermissions } from "@/hooks/usePermissions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
@@ -39,6 +40,9 @@ import {
 } from "@/lib/api/employees";
 
 export default function EmployeesPage() {
+  // 👇 NEW: RBAC Hook
+  const { canCreate, canEdit, canDelete } = usePermissions();
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [stats, setStats] = useState<EmployeeStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -149,15 +153,19 @@ export default function EmployeesPage() {
             >
               Refresh
             </NeoButton>
-            <Link href="/employees/new">
-              <NeoButton
-                variant="primary"
-                size="md"
-                icon={<Plus className="h-4 w-4" />}
-              >
-                New Employee
-              </NeoButton>
-            </Link>
+            
+            {/* 👇 NEW: RBAC applied */}
+            {canCreate && (
+              <Link href="/employees/new">
+                <NeoButton
+                  variant="primary"
+                  size="md"
+                  icon={<Plus className="h-4 w-4" />}
+                >
+                  New Employee
+                </NeoButton>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -292,11 +300,15 @@ export default function EmployeesPage() {
                   ? "Try adjusting filters"
                   : "Add your first employee"}
               </p>
-              <Link href="/employees/new">
-                <NeoButton variant="primary" icon={<Plus className="h-4 w-4" />}>
-                  Add Employee
-                </NeoButton>
-              </Link>
+              
+              {/* 👇 NEW: RBAC applied */}
+              {canCreate && (
+                <Link href="/employees/new">
+                  <NeoButton variant="primary" icon={<Plus className="h-4 w-4" />}>
+                    Add Employee
+                  </NeoButton>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -375,31 +387,39 @@ export default function EmployeesPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                       </Link>
-                      <Link href={`/employees/${emp.id}/edit`}>
+
+                      {/* 👇 NEW: RBAC applied */}
+                      {canEdit && (
+                        <Link href={`/employees/${emp.id}/edit`}>
+                          <button
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                            style={{
+                              background: "#e0e5ec",
+                              boxShadow:
+                                "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
+                            }}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </Link>
+                      )}
+
+                      {/* 👇 NEW: RBAC applied */}
+                      {canDelete && (
                         <button
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                          onClick={() => setDeleteTarget(emp)}
+                          className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
                           style={{
                             background: "#e0e5ec",
                             boxShadow:
                               "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
                           }}
-                          title="Edit"
+                          title="Delete"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                      </Link>
-                      <button
-                        onClick={() => setDeleteTarget(emp)}
-                        className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
-                        style={{
-                          background: "#e0e5ec",
-                          boxShadow:
-                            "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
-                        }}
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      )}
                     </div>
                   </div>
                 </div>

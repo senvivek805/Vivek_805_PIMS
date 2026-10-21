@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermissions } from "@/hooks/usePermissions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
@@ -8,6 +9,9 @@ import { Plus, FileCheck, Loader2, AlertCircle, Eye, Pencil, Printer, Trash2 } f
 import { getServiceCompletions, deleteServiceCompletion, type ServiceCompletion } from "@/lib/api/serviceCompletion";
 
 export default function ServiceCompletionsPage() {
+  // 👇 NEW: RBAC Hook
+  const { canCreate, canEdit, canDelete } = usePermissions();
+
   const [data, setData] = useState<ServiceCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,11 +58,15 @@ export default function ServiceCompletionsPage() {
               <p className="text-sm text-slate-500">Manage service completion certificates</p>
             </div>
           </div>
-          <Link href="/services/new">
-            <NeoButton variant="primary" icon={<Plus className="h-4 w-4" />}>
-              New Completion
-            </NeoButton>
-          </Link>
+          
+          {/* 👇 NEW: RBAC applied */}
+          {canCreate && (
+            <Link href="/services/new">
+              <NeoButton variant="primary" icon={<Plus className="h-4 w-4" />}>
+                New Completion
+              </NeoButton>
+            </Link>
+          )}
         </div>
 
         {/* Content */}
@@ -80,9 +88,13 @@ export default function ServiceCompletionsPage() {
               <FileCheck className="h-12 w-12 text-slate-300 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-slate-700">No completions found</h3>
               <p className="text-sm text-slate-500 mb-4">Create your first service completion certificate.</p>
-              <Link href="/services/new">
-                <NeoButton variant="primary">Create Now</NeoButton>
-              </Link>
+              
+              {/* 👇 NEW: RBAC applied */}
+              {canCreate && (
+                <Link href="/services/new">
+                  <NeoButton variant="primary">Create Now</NeoButton>
+                </Link>
+              )}
             </div>
           </NeoCard>
         ) : (
@@ -128,20 +140,24 @@ export default function ServiceCompletionsPage() {
                             </button>
                           </Link>
 
-                          {/* Edit Button */}
-                          <Link href={`/services/${item.id}/edit`}>
-                            <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-amber-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all">
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                          </Link>
+                          {/* 👇 NEW: RBAC applied */}
+                          {canEdit && (
+                            <Link href={`/services/${item.id}/edit`}>
+                              <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-amber-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all">
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                            </Link>
+                          )}
 
-                          {/* Delete Button */}
-                          <button 
-                            onClick={() => handleDelete(item.id!)}
-                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-red-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          {/* 👇 NEW: RBAC applied */}
+                          {canDelete && (
+                            <button 
+                              onClick={() => handleDelete(item.id!)}
+                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e0e5ec] text-red-600 shadow-[3px_3px_6px_#b8bcc2,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#b8bcc2,inset_-2px_-2px_4px_#ffffff] transition-all"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
 
                         </div>
                       </td>

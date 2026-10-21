@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermissions } from "@/hooks/usePermissions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
@@ -43,6 +44,9 @@ import {
 } from "@/lib/api/purchase";
 
 export default function PurchaseOrdersPage() {
+  // 👇 NEW: RBAC Hook
+  const { canCreate, canEdit, canDelete } = usePermissions();
+
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [stats, setStats] = useState<POStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -143,15 +147,19 @@ export default function PurchaseOrdersPage() {
             >
               Refresh
             </NeoButton>
-            <Link href="/purchase/new">
-              <NeoButton
-                variant="primary"
-                size="md"
-                icon={<Plus className="h-4 w-4" />}
-              >
-                New Purchase Order
-              </NeoButton>
-            </Link>
+            
+            {/* 👇 NEW: RBAC applied */}
+            {canCreate && (
+              <Link href="/purchase/new">
+                <NeoButton
+                  variant="primary"
+                  size="md"
+                  icon={<Plus className="h-4 w-4" />}
+                >
+                  New Purchase Order
+                </NeoButton>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -279,14 +287,18 @@ export default function PurchaseOrdersPage() {
                   ? "Try adjusting your search or filters"
                   : "Get started by creating your first PO"}
               </p>
-              <Link href="/purchase/new">
-                <NeoButton
-                  variant="primary"
-                  icon={<Plus className="h-4 w-4" />}
-                >
-                  Create Purchase Order
-                </NeoButton>
-              </Link>
+              
+              {/* 👇 NEW: RBAC applied */}
+              {canCreate && (
+                <Link href="/purchase/new">
+                  <NeoButton
+                    variant="primary"
+                    icon={<Plus className="h-4 w-4" />}
+                  >
+                    Create Purchase Order
+                  </NeoButton>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -404,32 +416,38 @@ export default function PurchaseOrdersPage() {
                         </button>
                       </Link>
 
-                      <Link href={`/purchase/${po.id}/edit`}>
+                      {/* 👇 NEW: RBAC applied */}
+                      {canEdit && (
+                        <Link href={`/purchase/${po.id}/edit`}>
+                          <button
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                            style={{
+                              background: "#e0e5ec",
+                              boxShadow:
+                                "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
+                            }}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </Link>
+                      )}
+
+                      {/* 👇 NEW: RBAC applied */}
+                      {canDelete && (
                         <button
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-orange-600 transition-all hover:scale-110"
+                          onClick={() => setDeleteTarget(po)}
+                          className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
                           style={{
                             background: "#e0e5ec",
                             boxShadow:
                               "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
                           }}
-                          title="Edit"
+                          title="Delete"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                      </Link>
-
-                      <button
-                        onClick={() => setDeleteTarget(po)}
-                        className="h-9 w-9 rounded-lg flex items-center justify-center text-red-600 transition-all hover:scale-110"
-                        style={{
-                          background: "#e0e5ec",
-                          boxShadow:
-                            "3px 3px 6px #b8bcc2, -3px -3px 6px #ffffff",
-                        }}
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      )}
                     </div>
                   </div>
                 </div>
