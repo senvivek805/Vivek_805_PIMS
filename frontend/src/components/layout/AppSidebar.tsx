@@ -25,8 +25,10 @@ import {
   FileCheck,
   FolderOpen,
   FileSpreadsheet,
-  Undo2
+  Undo2,
+  UserCog, // 👇 Naya icon add kiya
 } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions"; // 👇 Hook import kiya
 
 interface AppSidebarProps {
   isOpen?: boolean;
@@ -78,6 +80,7 @@ const menuItems: MenuItem[] = [
   { href: "/services", label: "Service Completions", icon: FileCheck },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/uc", label: "Utilization Cert. (UC)", icon: FileSpreadsheet },
+  { href: "/users", label: "User Management", icon: UserCog }, // 👇 Naya Link
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -88,9 +91,18 @@ export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
+  // 👇 Permissions Hook (To hide User Management from non-admins)
+  const { isAdmin } = usePermissions();
+
+  // 👇 Filter menu based on role
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (item.href === "/users" && !isAdmin) return false;
+    return true;
+  });
+
   // Auto-expand the parent if child route is active
   useEffect(() => {
-    menuItems.forEach((item) => {
+    filteredMenuItems.forEach((item) => {
       if (item.children) {
         const hasActiveChild = item.children.some(
           (child) => pathname === child.href || pathname?.startsWith(child.href + "/")
@@ -100,7 +112,7 @@ export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
         }
       }
     });
-  }, [pathname]);
+  }, [pathname, isAdmin]);
 
   // ============================================
   // TOGGLE EXPAND
@@ -204,7 +216,7 @@ export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
         {/* Menu Items */}
         <nav className="flex-1 overflow-y-auto px-4 py-6">
           <ul className="space-y-1">
-            {menuItems.map((item) => {
+            {filteredMenuItems.map((item) => {
               const Icon = item.icon;
               const hasChildren = item.children && item.children.length > 0;
               const isExpanded = expandedItems[item.href];
@@ -415,7 +427,6 @@ export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Icon */}
             <div className="flex justify-center mb-5">
               <div
                 className="h-16 w-16 rounded-full flex items-center justify-center"
