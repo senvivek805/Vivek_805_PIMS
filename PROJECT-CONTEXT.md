@@ -482,3 +482,16 @@ notepad PROJECT-CONTEXT.md
 ### Next Pending
 - [ ] `login-bg.jpg` image ko `frontend/public/` folder me daalna hai (taaki background image load ho sake).
 - [ ] Backend me kuch final testing.
+## ✅ Aaj Ka Kaam (22 Oct 2026)
+
+### Documents Linking (Bills & POs)
+- [x] Backend `DocumentViewSet` me filtering add ki (`bill`, `purchase_order`, `project` ke hisaab se).
+- [x] Frontend API `getDocuments` me query params add kiye.
+- [x] Naya component banaya `BillAttachments.tsx` (Bills ke liye).
+- [x] Naya component banaya `POAttachments.tsx` (Purchase Orders ke liye).
+- [x] Bill Detail page aur PO Detail page me attachments section integrate kiya.
+- [x] File upload, view/download, aur delete ka system perfectly kaam kar raha hai.
+
+### Next Pending
+- [ ] Bulk Data Import (Excel).
+- [ ] UI Polish of remaining pages.

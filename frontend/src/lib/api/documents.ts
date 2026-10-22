@@ -23,9 +23,19 @@ export interface DocumentListResponse {
   results: Document[];
 }
 
-export async function getDocuments(): Promise<DocumentListResponse> {
+export async function getDocuments(params?: { 
+  bill?: number; 
+  purchase_order?: number; 
+  project?: number 
+}): Promise<DocumentListResponse> {
+  const query = new URLSearchParams();
+  if (params?.bill) query.append('bill', String(params.bill));
+  if (params?.purchase_order) query.append('purchase_order', String(params.purchase_order));
+  if (params?.project) query.append('project', String(params.project));
+  query.append('format', 'json');
+  
   return fetchWithCsrf<DocumentListResponse>(
-    `${API_BASE_URL}/documents/?format=json`
+    `${API_BASE_URL}/documents/?${query.toString()}`
   );
 }
 

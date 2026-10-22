@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import AppLayout from "@/components/layout/AppLayout";
+import POAttachments from "@/components/POAttachments"; // 👈 NEW IMPORT
 import {
   NeoCard,
   NeoButton,
@@ -703,6 +704,9 @@ export default function PurchaseOrderDetailPage() {
             </div>
           </NeoCard>
         )}
+
+        {/* 👇 NEW: PO ATTACHMENTS SECTION */}
+        <POAttachments poId={po.id} projectId={po.project} />
 
         {/* Audit */}
         <NeoCard padding="sm">

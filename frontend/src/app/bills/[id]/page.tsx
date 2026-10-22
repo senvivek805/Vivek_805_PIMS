@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import AppLayout from "@/components/layout/AppLayout";
+import BillAttachments from "@/components/BillAttachments";
 import {
   NeoCard,
   NeoButton,
@@ -932,6 +933,9 @@ export default function BillDetailPage() {
             </p>
           </NeoCard>
         )}
+
+        {/* 👇 NEW: ATTACHMENTS SECTION (Yahan add kiya hai) */}
+        <BillAttachments billId={bill.id} projectId={bill.project} />
 
         {/* Audit */}
         <NeoCard padding="sm">
