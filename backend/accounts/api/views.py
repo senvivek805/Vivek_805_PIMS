@@ -192,3 +192,66 @@ def role_list(request):
     roles = Role.objects.all().order_by('name')
     data = [{'id': r.id, 'name': r.name, 'code': r.code} for r in roles]
     return Response(data)
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile_view(request):
+    """
+    PATCH /api/auth/profile/update/
+    User apni basic details update kar sakta hai.
+    """
+    user = request.user
+    data = request.data
+
+    # Basic fields update karo (agar bheje gaye hain)
+    if 'first_name' in data:
+        user.first_name = data['first_name']
+    if 'last_name' in data:
+        user.last_name = data['last_name']
+    if 'email' in data:
+        user.email = data['email']
+    if 'phone' in data:
+        user.phone = data['phone']
+    if 'designation' in data:
+        user.designation = data['designation']
+    if 'department' in data:
+        user.department = data['department']
+
+    user.save()
+
+    return Response(UserSerializer(user).data)
+from django.contrib.auth import update_session_auth_hash
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    """
+    POST /api/auth/password/change/
+    User apna password change kar sakta hai.
+    """
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+
+    # Validations
+    if not old_password or not new_password or not confirm_password:
+        return Response({"error": "Saari fields bharna zaroori hai."}, status=400)
+
+    if not user.check_password(old_password):
+        return Response({"error": "Purana password galat hai."}, status=400)
+
+    if new_password != confirm_password:
+        return Response({"error": "Naya password aur confirm password match nahi kar rahe."}, status=400)
+
+    if len(new_password) < 6:
+        return Response({"error": "Naya password kam se kam 6 characters ka hona chahiye."}, status=400)
+
+    # Password update karo
+    user.set_password(new_password)
+    user.save()
+
+    # User ko logout hone se bachane ke liye session update karo
+    update_session_auth_hash(request, user)
+
+    return Response({"message": "Password successfully change ho gaya! 🎉"})
+    

@@ -26,7 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    // 👇 Yahan data-scroll-behavior="smooth" add kar diya hai
+    <html 
+      lang="en" 
+      className={`${inter.variable} ${jetbrainsMono.variable}`} 
+      data-scroll-behavior="smooth"
+    >
       <body className={`${inter.className} antialiased`}>
         {children}
         <Toaster richColors position="top-right" />

@@ -507,3 +507,10 @@ notepad PROJECT-CONTEXT.md
 ### Next Pending
 - [ ] UI Polish of remaining pages (like Dashboard).
 - [ ] Final End-to-End testing.
+## ✅ Aaj Ka Kaam (25 Oct 2026 - Part 3)
+
+### Settings & Password Change
+- [x] Naya **Change Password** page banaya (`/profile/change-password`).
+- [x] Backend me `change_password_view` API banayi (purana password verify karke naya set karta hai).
+- [x] Settings page me "Change Password (Coming Soon)" ko hatakar working link laga diya.
+- [x] Next.js ke scroll warning ko fix kiya (`data-scroll-behavior="smooth"`).
