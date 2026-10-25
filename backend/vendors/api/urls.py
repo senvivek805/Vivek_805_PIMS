@@ -1,16 +1,12 @@
 from django.urls import path
-
 from . import views
-
-app_name = 'vendors_api'
+from .views import import_excel_data
 
 urlpatterns = [
-    # List + Create
     path('vendors/', views.vendor_list_create, name='list-create'),
-
-    # Stats
     path('vendors/stats/', views.vendor_stats, name='stats'),
-
-    # Detail + Update + Delete
     path('vendors/<int:pk>/', views.vendor_detail, name='detail'),
+    
+    # 👇 Yahan dhyan do, import wale path me bhi 'vendors/' add kiya hai
+    path('vendors/import/', import_excel_data, name='import-excel'),
 ]

@@ -27,6 +27,7 @@ import {
   FileSpreadsheet,
   Undo2,
   UserCog, // 👇 Naya icon add kiya
+  Upload,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions"; // 👇 Hook import kiya
 
@@ -82,6 +83,7 @@ const menuItems: MenuItem[] = [
   { href: "/uc", label: "Utilization Cert. (UC)", icon: FileSpreadsheet },
   { href: "/users", label: "User Management", icon: UserCog }, // 👇 Naya Link
   { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/import", label: "Import Data", icon: Upload },
 ];
 
 export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {

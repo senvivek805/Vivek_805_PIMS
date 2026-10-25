@@ -162,3 +162,236 @@ def vendor_stats(request):
         'type_wise': type_wise,
         'state_wise': state_wise,
     })
+import pandas as pd
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from vendors.models import Vendor
+from projects.models import Project, Agency, Department
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def import_excel_data(request):
+    file = request.FILES.get('file')
+    data_type = request.data.get('type')
+
+    if not file:
+        return Response({"error": "No file uploaded."}, status=400)
+
+    try:
+        # File read karo
+        if file.name.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+
+        # ============================================
+        # VENDORS IMPORT
+        # ============================================
+        if data_type == 'vendors':
+            required_cols = ['vendor_name', 'vendor_type', 'phone', 'city', 'state', 'address_line1', 'contact_person']
+            for col in required_cols:
+                if col not in df.columns:
+                    return Response({"error": f"Missing column in Excel: {col}"}, status=400)
+
+            count = 0
+            for index, row in df.iterrows():
+                def get_val(key, default=''):
+                    val = row.get(key, default)
+                    return str(val).strip() if pd.notna(val) else str(default)
+
+                v_code = get_val('vendor_code')
+                
+                defaults = {
+                    'vendor_name': get_val('vendor_name'),
+                    'vendor_type': get_val('vendor_type', 'supplier'),
+                    'reference_no': get_val('reference_no'),
+                    'description': get_val('description'),
+                    'gst_number': get_val('gst_number'),
+                    'pan_number': get_val('pan_number'),
+                    'tan_number': get_val('tan_number'),
+                    'address_line1': get_val('address_line1'),
+                    'address_line2': get_val('address_line2'),
+                    'city': get_val('city'),
+                    'state': get_val('state'),
+                    'pincode': get_val('pincode'),
+                    'country': get_val('country', 'India'),
+                    'contact_person': get_val('contact_person'),
+                    'email': get_val('email'),
+                    'phone': get_val('phone'),
+                    'alternate_phone': get_val('alternate_phone'),
+                    'bank_name': get_val('bank_name'),
+                    'account_number': get_val('account_number'),
+                    'ifsc_code': get_val('ifsc_code'),
+                    'bank_branch': get_val('bank_branch'),
+                    'account_type': get_val('account_type', 'savings'),
+                    'is_active': True
+                }
+
+                if v_code:
+                    Vendor.objects.update_or_create(vendor_code=v_code, defaults=defaults)
+                else:
+                    Vendor.objects.create(**defaults)
+                count += 1
+
+            return Response({"message": f"Successfully imported {count} vendors."})
+
+        # ============================================
+        # PROJECTS IMPORT
+        # ============================================
+        elif data_type == 'projects':
+            required_cols = ['project_code', 'project_name', 'pi_name', 'sanctioned_amount', 'start_date', 'end_date']
+            for col in required_cols:
+                if col not in df.columns:
+                    return Response({"error": f"Missing column in Excel: {col}"}, status=400)
+
+            count = 0
+            for index, row in df.iterrows():
+                def get_val(key, default=''):
+                    val = row.get(key, default)
+                    return str(val).strip() if pd.notna(val) else str(default)
+
+                p_code = get_val('project_code')
+                if not p_code:
+                    continue
+
+                agency_code = get_val('agency_code')
+                dept_code = get_val('department_code')
+                
+                agency = Agency.objects.filter(code=agency_code).first() if agency_code else None
+                department = Department.objects.filter(code=dept_code).first() if dept_code else None
+
+                try:
+                    start_date = pd.to_datetime(row['start_date']).date() if pd.notna(row['start_date']) else None
+                    end_date = pd.to_datetime(row['end_date']).date() if pd.notna(row['end_date']) else None
+                except:
+                    start_date, end_date = None, None
+
+                Project.objects.update_or_create(
+                    project_code=p_code,
+                    defaults={
+                        'project_name': get_val('project_name'),
+                        'pi_name': get_val('pi_name'),
+                        'co_pi_name': get_val('co_pi_name'),
+                        'sanctioned_amount': float(row['sanctioned_amount']) if pd.notna(row['sanctioned_amount']) else 0,
+                        'total_sanctioned_amount': float(row['sanctioned_amount']) if pd.notna(row['sanctioned_amount']) else 0,
+                        'start_date': start_date,
+                        'end_date': end_date,
+                        'status': get_val('status', 'active'),
+                        'description': get_val('description'),
+                        'agency': agency,
+                        'department': department,
+                    }
+                )
+                count += 1
+
+            return Response({"message": f"Successfully imported {count} projects."})
+
+        # ============================================
+        # MATERIALS IMPORT
+        # ============================================
+        elif data_type == 'materials':
+            from materials.models import Material, MaterialCategory
+
+            required_cols = ['material_name', 'unit', 'gst_rate']
+            for col in required_cols:
+                if col not in df.columns:
+                    return Response({"error": f"Missing column in Excel: {col}"}, status=400)
+
+            count = 0
+            for index, row in df.iterrows():
+                def get_val(key, default=''):
+                    val = row.get(key, default)
+                    return str(val).strip() if pd.notna(val) else str(default)
+
+                m_code = get_val('material_code')
+                category_name = get_val('category_name')
+                
+                category = MaterialCategory.objects.filter(name__iexact=category_name).first() if category_name else None
+
+                defaults = {
+                    'material_name': get_val('material_name'),
+                    'category': category,
+                    'unit': get_val('unit', 'nos'),
+                    'hsn_code': get_val('hsn_code'),
+                    'gst_rate': float(row['gst_rate']) if pd.notna(row['gst_rate']) else 0,
+                    'description': get_val('description'),
+                    'is_active': True
+                }
+
+                if m_code:
+                    Material.objects.update_or_create(material_code=m_code, defaults=defaults)
+                else:
+                    Material.objects.create(**defaults)
+                count += 1
+
+            return Response({"message": f"Successfully imported {count} materials."})
+
+        # ============================================
+        # EMPLOYEES IMPORT
+        # ============================================
+        elif data_type == 'employees':
+            from employees.models import Employee
+            from projects.models import Project
+            from django.utils import timezone
+
+            required_cols = ['full_name', 'designation', 'employee_type', 'phone', 'joining_date']
+            for col in required_cols:
+                if col not in df.columns:
+                    return Response({"error": f"Missing column in Excel: {col}"}, status=400)
+
+            count = 0
+            for index, row in df.iterrows():
+                def get_val(key, default=''):
+                    val = row.get(key, default)
+                    return str(val).strip() if pd.notna(val) else str(default)
+
+                e_code = get_val('employee_code')
+                proj_code = get_val('assigned_project_code')
+                
+                # Project dhundho (agar code diya hai)
+                project = Project.objects.filter(project_code=proj_code).first() if proj_code else None
+
+                # Dates handle karo (Agar khali ho to aaj ki date daal do)
+                try:
+                    joining = pd.to_datetime(row['joining_date']).date() if pd.notna(row['joining_date']) else timezone.now().date()
+                    leaving = pd.to_datetime(row['leaving_date']).date() if pd.notna(row.get('leaving_date')) else None
+                except:
+                    joining = timezone.now().date()
+                    leaving = None
+
+                defaults = {
+                    'reference_no': get_val('reference_no'),
+                    'full_name': get_val('full_name'),
+                    'designation': get_val('designation'),
+                    'department': get_val('department'),
+                    'employee_type': get_val('employee_type', 'staff'),
+                    'phone': get_val('phone'),
+                    'email': get_val('email'),
+                    'address': get_val('address'),
+                    'joining_date': joining,
+                    'leaving_date': leaving,
+                    'assigned_project': project,
+                    'project_role': get_val('project_role'), # 👈 YAHAN FIX HUA HAI
+                    'manpower_type': get_val('manpower_type', 'full_time'),
+                    'bank_name': get_val('bank_name'),
+                    'account_number': get_val('account_number'),
+                    'ifsc_code': get_val('ifsc_code'),
+                    'bank_branch': get_val('bank_branch'),
+                    'account_type': get_val('account_type', 'savings'),
+                    'is_active': True
+                }
+
+                if e_code:
+                    Employee.objects.update_or_create(employee_code=e_code, defaults=defaults)
+                else:
+                    Employee.objects.create(**defaults)
+                count += 1
+
+            return Response({"message": f"Successfully imported {count} employees."})
+
+        else:
+            return Response({"error": "Invalid data type."}, status=400)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

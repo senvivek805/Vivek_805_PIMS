@@ -495,3 +495,15 @@ notepad PROJECT-CONTEXT.md
 ### Next Pending
 - [ ] Bulk Data Import (Excel).
 - [ ] UI Polish of remaining pages.
+## ✅ Aaj Ka Kaam (25 Oct 2026)
+
+### Bulk Data Import (Complete System)
+- [x] Backend me **Vendors, Projects, Materials, aur Employees** ke liye Excel/CSV import API banayi.
+- [x] Frontend me `/import` page par Data Type selector, Drag & Drop file upload, aur Status messages add kiye.
+- [x] **CSV Template Download** ka feature add kiya (jisse exact format me sample file download hoti hai).
+- [x] Database me saari fields (Bank Details, Tax Info, Project Assignment) perfectly handle kiye gayi hain.
+- [x] Sidebar me "Import Data" link add kiya (Admin/Manager ke liye).
+
+### Next Pending
+- [ ] UI Polish of remaining pages (like Dashboard).
+- [ ] Final End-to-End testing.
