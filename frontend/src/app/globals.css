@@ -272,3 +272,52 @@ html {
 .rotate-3d:hover {
   transform: perspective(1000px) rotateY(5deg) rotateX(-5deg) scale(1.02);
 }
+/* ============================================ */
+/* ROBUST PRINT STYLES                          */
+/* ============================================ */
+@media print {
+  /* 1. Hide Sidebar, Header, Buttons, and Navigation */
+  aside, 
+  header, 
+  nav, 
+  button, 
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* 2. Reset Heights and Overflows for printing */
+  body, html, #__next, main, .flex, .flex-col, .h-screen, .overflow-hidden, .overflow-y-auto {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 3. Expand the main container */
+  .max-w-\[1400px\], .max-w-6xl, .max-w-7xl, .max-w-5xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 4. Table Print Fixes */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+}

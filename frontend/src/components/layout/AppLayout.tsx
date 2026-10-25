@@ -94,16 +94,25 @@ export function AppLayout({ children }: AppLayoutProps) {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-[#e0e5ec] flex">
-      <AppSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+    // 👇 Print me flex ko hata kar block kiya, aur background white kiya
+    <div className="min-h-screen bg-[#e0e5ec] flex print:block print:bg-white print:min-h-0">
+      
+      {/* Sidebar - Print me hide */}
+      <div className="print:hidden">
+        <AppSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <AppHeader onMenuClick={() => setSidebarOpen(true)} />
+      <div className="flex-1 flex flex-col min-w-0 print:block print:w-full">
+        {/* Header - Print me hide */}
+        <div className="print:hidden">
+          <AppHeader onMenuClick={() => setSidebarOpen(true)} />
+        </div>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+        {/* Main Content - Print me padding hatayi aur overflow visible kiya */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden print:p-0 print:m-0 print:w-full print:overflow-visible">
           {children}
         </main>
       </div>

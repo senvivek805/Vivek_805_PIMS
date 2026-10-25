@@ -254,4 +254,53 @@ def change_password_view(request):
     update_session_auth_hash(request, user)
 
     return Response({"message": "Password successfully change ho gaya! 🎉"})
-    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_view(request):
+    """
+    POST /api/auth/register/
+    Naya user register karne ke liye.
+    """
+    data = request.data
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+    first_name = data.get('first_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+
+    # Validations
+    if not username or not email or not password:
+        return Response({"error": "Username, Email aur Password zaroori hain."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username__iexact=username).exists():
+        return Response({"error": "Ye Username already registered hai."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(email__iexact=email).exists():
+        return Response({"error": "Ye Email already registered hai."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if len(password) < 6:
+        return Response({"error": "Password kam se kam 6 characters ka hona chahiye."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Naya user banao
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        # Default role 'Viewer' assign karo
+        viewer_role = Role.objects.filter(code='viewer').first()
+        if viewer_role:
+            user.role = viewer_role
+            user.save()
+
+        return Response(
+            {"message": "Registration successful! Ab tum login kar sakte ho."}, 
+            status=status.HTTP_201_CREATED
+        )
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from .views import update_profile_view 
 from .views import update_profile_view, change_password_view
+from .views import update_profile_view, change_password_view, register_view
 
 app_name = 'accounts_api'
 
@@ -16,4 +17,5 @@ urlpatterns = [
     path('roles/', views.role_list, name='role-list'),
     path('auth/profile/update/', update_profile_view, name='update-profile'),
     path('auth/password/change/', change_password_view, name='change-password'),
+    path('auth/register/', register_view, name='register'),
 ]
