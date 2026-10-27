@@ -526,3 +526,23 @@ notepad PROJECT-CONTEXT.md
 
 ### Pending / Kal Ka Kaam
 - [ ] Reports ka Print Layout fix karna (Sidebar/Header hide karna aur A4 me fit karna).
+## ✅ Aaj Ka Kaam (27 Oct 2026)
+
+### Auth & Profile (Completed)
+- [x] Naya **Register Page** banaya (3D Glassmorphism UI, default role 'Viewer').
+- [x] Naya **Profile Page** aur **Edit Profile Page** banaya.
+- [x] Backend me `update_profile_view` API add ki.
+- [x] Naya **Change Password** feature (Backend API + Frontend Form).
+- [x] **Settings Page** ko functional banaya aur usme links add kiye.
+
+### Reports Module (Completed)
+- [x] Saari 4 Reports me **Export to Excel (CSV)** ka naya button add kiya.
+- [x] **Print Layout Fix:** `hide-on-print` custom class aur `tfoot` fix karke A4 print ekdum perfect banaya (Sidebar/Buttons print nahi hote).
+
+### Bulk Data Import (WIP)
+- [x] Backend me **Bills (Form 5)** ka import logic add kiya.
+- [x] Frontend me Bills ka template download add kiya.
+
+### ⚠️ Kal Ka Plan (Pending)
+- [ ] **Next.js 16 Memory Crash Fix:** Windows pe `FATAL ERROR: Zone Allocation failed` aa raha hai. Kal isko fix karna hai (shayad Next.js 15 pe downgrade karna padega).
+- [ ] Bills Import ko test karna (server chalne ke baad).

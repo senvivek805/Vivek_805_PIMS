@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox, NeoBadge } from "@/components/neumorphism";
-import { ArrowLeft, Printer, Loader2, Receipt, Search, Filter } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, Receipt, Search, Filter, FileSpreadsheet } from "lucide-react";
 import { getBillEntries, type BillEntry } from "@/lib/api/bills";
 import { getProjects, type Project } from "@/lib/api/projects";
 import { formatCurrency } from "@/lib/api/funds";
@@ -85,12 +85,56 @@ export default function BillsReportPage() {
     totalNet += net;
   });
 
+  // 👇 NAYA FUNCTION: Export to Excel (CSV)
+  const handleExportExcel = () => {
+    const headers = ["Bill No", "Vendor", "Project Code", "Project Name", "Base Amount", "GST", "Other Charges", "Gross Total", "Deductions", "Net Payable", "Status"];
+    
+    const rows = filteredData.map(bill => {
+      const base = Number(bill.bill_amount) || 0;
+      const gst = (Number(bill.cgst_amount) || 0) + (Number(bill.sgst_amount) || 0) + (Number(bill.igst_amount) || 0);
+      const other = Number(bill.other_charges) || 0;
+      const deductions = (Number(bill.tds_gst) || 0) + (Number(bill.tds_income_tax) || 0) + (Number(bill.penalty) || 0) + (Number(bill.pbg_security) || 0);
+      const gross = base + gst + other;
+      const net = Number(bill.total_payable) || 0;
+
+      return [
+        `"${bill.bill_no}"`,
+        `"${bill.vendor_name || ''}"`,
+        `"${bill.project_code || ''}"`,
+        `"${bill.project_name || ''}"`,
+        base,
+        gst,
+        other,
+        gross,
+        deductions,
+        net,
+        `"${bill.status.toUpperCase()}"`
+      ].join(",");
+    });
+
+    const totalsRow = [
+      '"Grand Total"', '""', '""', '""',
+      totalBase, totalGST, totalOther, totalGross, totalDeductions, totalNet, '""'
+    ].join(",");
+
+    const csvContent = [headers.join(","), ...rows, totalsRow].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Bill_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <AppLayout>
       <div className="max-w-[1400px] mx-auto space-y-6">
         
         {/* Header (Hide on Print) */}
-        <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+        <div className="hide-on-print flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href="/reports">
               <NeoButton variant="secondary" size="md" icon={<ArrowLeft className="h-4 w-4" />}>
@@ -107,9 +151,16 @@ export default function BillsReportPage() {
               </div>
             </div>
           </div>
-          <NeoButton variant="primary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
-            Print Report
-          </NeoButton>
+          
+          {/* 👇 Yahan Excel aur Print dono buttons hain */}
+          <div className="flex items-center gap-3">
+            <NeoButton variant="secondary" onClick={handleExportExcel} icon={<FileSpreadsheet className="h-4 w-4" />}>
+              Export Excel
+            </NeoButton>
+            <NeoButton variant="primary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
+              Print Report
+            </NeoButton>
+          </div>
         </div>
 
         {/* Filters (Hide on Print) */}
@@ -226,11 +277,9 @@ export default function BillsReportPage() {
                         <td colSpan={10} className="p-6 text-center text-slate-500">No bills found matching your search.</td>
                       </tr>
                     )}
-                  </tbody>
-                  {/* Footer Total Row */}
-                  {filteredData.length > 0 && (
-                    <tfoot>
-                      <tr className="bg-slate-100 print:bg-transparent border-t-2 border-slate-400 print:border-black font-bold">
+                    {/* Grand Total Row (Inside tbody to prevent repeating) */}
+                    {filteredData.length > 0 && (
+                      <tr className="bg-slate-100 print:bg-gray-100 border-t-2 border-slate-400 print:border-black font-bold">
                         <td colSpan={3} className="p-3 text-slate-800 print:text-black uppercase text-right">Grand Total</td>
                         <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalBase)}</td>
                         <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalGST)}</td>
@@ -240,8 +289,8 @@ export default function BillsReportPage() {
                         <td className="p-3 text-right text-green-700 print:text-black">{formatCurrency(totalNet)}</td>
                         <td></td>
                       </tr>
-                    </tfoot>
-                  )}
+                    )}
+                  </tbody>
                 </table>
               </div>
             </NeoCard>
@@ -272,6 +321,25 @@ export default function BillsReportPage() {
       </div>
 
       {/* Print Styles */}
+            {/* 👇 Ye naya style tag add karo */}
+      <style>{`
+        @media print {
+          .hide-on-print { display: none !important; }
+        }
+      `}</style>
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          body {
+            background-color: white !important;
+          }
+          @page {
+            size: A4 landscape;
+            margin: 15mm;
+          }
+        }
+      `}</style>
       <style jsx global>{`
         @media print {
           body {

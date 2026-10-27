@@ -390,6 +390,78 @@ def import_excel_data(request):
 
             return Response({"message": f"Successfully imported {count} employees."})
 
+        # ============================================
+        # BILLS IMPORT (Form 5)
+        # ============================================
+        elif data_type == 'bills':
+            from bills.models import BillEntry
+            from projects.models import Project
+            from vendors.models import Vendor
+            from purchase.models import PurchaseOrder
+            from funds.models import BudgetHead
+
+            required_cols = ['bill_no', 'bill_date', 'project_code', 'vendor_code', 'bill_amount']
+            for col in required_cols:
+                if col not in df.columns:
+                    return Response({"error": f"Missing column in Excel: {col}"}, status=400)
+
+            count = 0
+            for index, row in df.iterrows():
+                def get_val(key, default=''):
+                    val = row.get(key, default)
+                    return str(val).strip() if pd.notna(val) else str(default)
+
+                b_no = get_val('bill_no')
+                if not b_no:
+                    continue
+
+                # Relations dhundho
+                p_code = get_val('project_code')
+                v_code = get_val('vendor_code')
+                po_no = get_val('po_number')
+                bh_code = get_val('budget_head_code')
+
+                project = Project.objects.filter(project_code=p_code).first()
+                vendor = Vendor.objects.filter(vendor_code=v_code).first()
+                po = PurchaseOrder.objects.filter(po_number=po_no).first() if po_no else None
+                budget_head = BudgetHead.objects.filter(code=bh_code).first() if bh_code else None
+
+                if not project or not vendor:
+                    continue # Skip if essential relation is missing
+
+                # Date handle karo
+                try:
+                    b_date = pd.to_datetime(row['bill_date']).date() if pd.notna(row['bill_date']) else None
+                except:
+                    b_date = None
+
+                # Amounts handle karo
+                base = float(row['bill_amount']) if pd.notna(row['bill_amount']) else 0
+
+                defaults = {
+                    'bill_date': b_date,
+                    'project': project,
+                    'vendor': vendor,
+                    'purchase_order': po,
+                    'budget_head': budget_head,
+                    'recipient_name': get_val('recipient_name', vendor.vendor_name),
+                    'particulars': get_val('particulars'),
+                    'bill_amount': base,
+                    'cgst_rate': float(row['cgst_rate']) if pd.notna(row.get('cgst_rate')) else 0,
+                    'sgst_rate': float(row['sgst_rate']) if pd.notna(row.get('sgst_rate')) else 0,
+                    'igst_rate': float(row['igst_rate']) if pd.notna(row.get('igst_rate')) else 0,
+                    'tds_gst_rate': float(row['tds_gst_rate']) if pd.notna(row.get('tds_gst_rate')) else 0,
+                    'tds_income_tax_rate': float(row['tds_income_tax_rate']) if pd.notna(row.get('tds_income_tax_rate')) else 0,
+                    'penalty': float(row['penalty']) if pd.notna(row.get('penalty')) else 0,
+                    'pbg_security': float(row['pbg_security']) if pd.notna(row.get('pbg_security')) else 0,
+                    'other_charges': float(row['other_charges']) if pd.notna(row.get('other_charges')) else 0,
+                    'status': get_val('status', 'draft'),
+                }
+
+                BillEntry.objects.update_or_create(bill_no=b_no, defaults=defaults)
+                count += 1
+
+            return Response({"message": f"Successfully imported {count} bills."})
         else:
             return Response({"error": "Invalid data type."}, status=400)
 

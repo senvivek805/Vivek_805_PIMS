@@ -273,20 +273,21 @@ html {
   transform: perspective(1000px) rotateY(5deg) rotateX(-5deg) scale(1.02);
 }
 /* ============================================ */
-/* ROBUST PRINT STYLES                          */
+/* PERFECT PRINT STYLES                         */
 /* ============================================ */
 @media print {
-  /* 1. Hide Sidebar, Header, Buttons, and Navigation */
-  aside, 
-  header, 
-  nav, 
-  button, 
-  .print\:hidden {
+  /* 1. Hide Sidebar, Header, Buttons */
+  .no-print { display: none !important; }
+  
+  aside, header, nav, button, .print\:hidden {
+    display: none !important;
+  }
+  aside, header, nav, button, .print\:hidden {
     display: none !important;
   }
 
-  /* 2. Reset Heights and Overflows for printing */
-  body, html, #__next, main, .flex, .flex-col, .h-screen, .overflow-hidden, .overflow-y-auto {
+  /* 2. Reset Body and Layout */
+  html, body, #__next, main {
     display: block !important;
     height: auto !important;
     min-height: auto !important;
@@ -296,28 +297,42 @@ html {
     padding: 0 !important;
   }
 
-  /* 3. Expand the main container */
-  .max-w-\[1400px\], .max-w-6xl, .max-w-7xl, .max-w-5xl {
+  .min-h-screen, .flex, .flex-col, .flex-1 {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* 3. Force full width */
+  .max-w-\[1400px\], .max-w-6xl, .max-w-7xl {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  /* 4. Table Print Fixes */
+  /* 4. Remove Card Shadows */
+  .print\:shadow-none {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* 5. Table Adjustments for A4 Landscape */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
-    page-break-inside: auto;
+    font-size: 10px !important; /* Font chhota kiya taaki fit ho jaye */
   }
-  tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
+  th, td {
+    padding: 6px 4px !important; /* Padding kam ki */
+    word-break: break-word !important;
   }
   thead {
     display: table-header-group;
   }
+  /* Footer Repeat Rokne Ke Liye */
   tfoot {
-    display: table-footer-group;
+    display: table-row-group !important; 
   }
 }

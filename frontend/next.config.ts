@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  // Disable Turbopack cache issues
-  experimental: {
-    // Force fresh build
+  // 👇 Windows pe PostCSS worker OOM ko rokne ke liye
+  turbopack: {
+    root: path.resolve(__dirname),
   },
-  // Faster refresh
+  experimental: {
+    webpackMemoryOptimizations: true,
+  },
   reactStrictMode: true,
 };
 

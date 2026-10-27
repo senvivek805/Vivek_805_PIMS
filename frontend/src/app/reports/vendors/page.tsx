@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox } from "@/components/neumorphism";
-import { ArrowLeft, Printer, Loader2, Users, Search, Filter } from "lucide-react";
+// 👇 Import fix kiya aur FileSpreadsheet add kiya
+import { ArrowLeft, Printer, Loader2, Users, Search, Filter, FileSpreadsheet } from "lucide-react";
 import { getBillEntries, type BillEntry } from "@/lib/api/bills";
 import { getProjects, type Project } from "@/lib/api/projects";
 import { formatCurrency } from "@/lib/api/funds";
@@ -116,12 +117,48 @@ export default function VendorPaymentsReportPage() {
   const grandTotalPaid = filteredData.reduce((sum, v) => sum + v.total_paid, 0);
   const grandTotalPending = filteredData.reduce((sum, v) => sum + v.total_pending, 0);
 
+  // 👇 NAYA FUNCTION: Excel Export
+  const handleExportExcel = () => {
+    const headers = ["Vendor Name", "Project Code", "Project Name", "Total Bills", "Total Gross", "Net Paid", "Net Pending"];
+    
+    const rows = filteredData.map(vendor => {
+      return [
+        `"${vendor.vendor_name}"`,
+        `"${vendor.project_code || ''}"`,
+        `"${vendor.project_name || ''}"`,
+        vendor.total_bills,
+        vendor.total_gross,
+        vendor.total_paid,
+        vendor.total_pending
+      ].join(",");
+    });
+
+    const totalsRow = [
+      '"Grand Total"', '""', '""',
+      filteredData.reduce((sum, v) => sum + v.total_bills, 0),
+      grandTotalGross,
+      grandTotalPaid,
+      grandTotalPending
+    ].join(",");
+
+    const csvContent = [headers.join(","), ...rows, totalsRow].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Vendor_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+        {/* Header (Hide on Print) */}
+        <div className="hide-on-print flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href="/reports">
               <NeoButton variant="secondary" size="md" icon={<ArrowLeft className="h-4 w-4" />}>
@@ -138,9 +175,16 @@ export default function VendorPaymentsReportPage() {
               </div>
             </div>
           </div>
-          <NeoButton variant="primary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
-            Print Report
-          </NeoButton>
+          
+          {/* 👇 Naye Buttons */}
+          <div className="flex items-center gap-3">
+            <NeoButton variant="secondary" onClick={handleExportExcel} icon={<FileSpreadsheet className="h-4 w-4" />}>
+              Export Excel
+            </NeoButton>
+            <NeoButton variant="primary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
+              Print Report
+            </NeoButton>
+          </div>
         </div>
 
         {/* Filters (Hide on Print) */}
@@ -236,11 +280,10 @@ export default function VendorPaymentsReportPage() {
                         <td colSpan={6} className="p-6 text-center text-slate-500">No vendor data found.</td>
                       </tr>
                     )}
-                  </tbody>
-                  {/* Footer Total Row */}
-                  {filteredData.length > 0 && (
-                    <tfoot>
-                      <tr className="bg-slate-100 print:bg-transparent border-t-2 border-slate-400 print:border-black font-bold">
+
+                    {/* 👇 Grand Total Row (Inside tbody to prevent repeating) */}
+                    {filteredData.length > 0 && (
+                      <tr className="bg-slate-100 print:bg-gray-100 border-t-2 border-slate-400 print:border-black font-bold">
                         <td colSpan={2} className="p-3 text-slate-800 print:text-black uppercase">Grand Total</td>
                         <td className="p-3 text-center text-slate-800 print:text-black">
                           {filteredData.reduce((sum, v) => sum + v.total_bills, 0)}
@@ -249,8 +292,8 @@ export default function VendorPaymentsReportPage() {
                         <td className="p-3 text-right text-green-700 print:text-black">{formatCurrency(grandTotalPaid)}</td>
                         <td className="p-3 text-right text-red-700 print:text-black">{formatCurrency(grandTotalPending)}</td>
                       </tr>
-                    </tfoot>
-                  )}
+                    )}
+                  </tbody>
                 </table>
               </div>
             </NeoCard>
@@ -279,6 +322,13 @@ export default function VendorPaymentsReportPage() {
           </>
         )}
       </div>
+
+      {/* 👇 Custom Print Style Fix */}
+      <style>{`
+        @media print {
+          .hide-on-print { display: none !important; }
+        }
+      `}</style>
 
       {/* Print Styles */}
       <style jsx global>{`

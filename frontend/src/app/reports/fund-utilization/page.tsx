@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
 import { NeoCard, NeoButton, NeoIconBox } from "@/components/neumorphism";
-import { ArrowLeft, Printer, Loader2, BarChart3, Search } from "lucide-react";
+// 👇 Import me FileSpreadsheet add kiya
+import { ArrowLeft, Printer, Loader2, BarChart3, Search, FileSpreadsheet } from "lucide-react";
 import { getBudgetOverview, formatCurrency, type BudgetOverviewResponse } from "@/lib/api/funds";
 
 export default function FundUtilizationReportPage() {
@@ -50,12 +51,44 @@ export default function FundUtilizationReportPage() {
     totalBalance += proj.balance;
   });
 
+  // 👇 NAYA FUNCTION: Excel Export
+  const handleExportExcel = () => {
+    const headers = ["Project Code", "Project Name", "Total Received", "Allocated Budget", "Total Spent", "Balance"];
+    
+    const rows = filteredProjects.map(proj => {
+      return [
+        `"${proj.project_code || ''}"`,
+        `"${proj.project_name || ''}"`,
+        proj.received,
+        proj.allocated,
+        proj.spent,
+        proj.balance
+      ].join(",");
+    });
+
+    const totalsRow = [
+      '"Grand Total"', '""',
+      totalReceived, totalAllocated, totalSpent, totalBalance
+    ].join(",");
+
+    const csvContent = [headers.join(","), ...rows, totalsRow].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Fund_Utilization_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header (Hide on Print) */}
-        <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+        <div className="hide-on-print flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href="/reports">
               <NeoButton variant="secondary" size="md" icon={<ArrowLeft className="h-4 w-4" />}>
@@ -72,9 +105,16 @@ export default function FundUtilizationReportPage() {
               </div>
             </div>
           </div>
-          <NeoButton variant="primary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
-            Print Report
-          </NeoButton>
+          
+          {/* 👇 Naye Buttons */}
+          <div className="flex items-center gap-3">
+            <NeoButton variant="secondary" onClick={handleExportExcel} icon={<FileSpreadsheet className="h-4 w-4" />}>
+              Export Excel
+            </NeoButton>
+            <NeoButton variant="primary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
+              Print Report
+            </NeoButton>
+          </div>
         </div>
 
         {/* Filters (Hide on Print) */}
@@ -105,7 +145,7 @@ export default function FundUtilizationReportPage() {
           </NeoCard>
         ) : data ? (
           <>
-            {/* Print Header (Visible only on print) */}
+            {/* Print Header */}
             <div className="hidden print:block text-center mb-8">
               <h2 className="text-2xl font-bold uppercase">Indian Institute of Technology (BHU)</h2>
               <p className="text-lg">Varanasi - 221005</p>
@@ -165,19 +205,18 @@ export default function FundUtilizationReportPage() {
                         <td colSpan={5} className="p-6 text-center text-slate-500">No projects found matching your search.</td>
                       </tr>
                     )}
-                  </tbody>
-                  {/* Footer Total Row */}
-                  {filteredProjects.length > 0 && (
-                    <tfoot>
-                      <tr className="bg-slate-50 print:bg-transparent border-t-2 border-slate-300 print:border-black font-bold">
+
+                    {/* 👇 Grand Total Row (Inside tbody) */}
+                    {filteredProjects.length > 0 && (
+                      <tr className="bg-slate-50 print:bg-gray-100 border-t-2 border-slate-300 print:border-black font-bold">
                         <td className="p-3 text-slate-800 print:text-black uppercase">Grand Total</td>
                         <td className="p-3 text-right text-slate-800 print:text-black">{formatCurrency(totalReceived)}</td>
                         <td className="p-3 text-right text-green-700 print:text-black">{formatCurrency(totalAllocated)}</td>
                         <td className="p-3 text-right text-red-700 print:text-black">{formatCurrency(totalSpent)}</td>
                         <td className="p-3 text-right text-blue-800 print:text-black">{formatCurrency(totalBalance)}</td>
                       </tr>
-                    </tfoot>
-                  )}
+                    )}
+                  </tbody>
                 </table>
               </div>
             </NeoCard>
@@ -206,6 +245,13 @@ export default function FundUtilizationReportPage() {
           </>
         ) : null}
       </div>
+
+      {/* 👇 Custom Print Style Fix */}
+      <style>{`
+        @media print {
+          .hide-on-print { display: none !important; }
+        }
+      `}</style>
 
       {/* Print Styles */}
       <style jsx global>{`
