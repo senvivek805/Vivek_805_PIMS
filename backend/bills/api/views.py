@@ -1,6 +1,7 @@
 from django.db.models import Q, Sum
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
@@ -172,4 +173,39 @@ def bill_entry_stats(request):
         'total_payable': float(total_payable),
         'total_gross': float(total_gross), # <-- YE NAYI LINE ADD HUI HAI
         'status_wise': status_wise,
+    })
+from purchase.models import PurchaseOrder
+from projects.models import Project
+from vendors.models import Vendor
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def pending_approvals(request):
+    """
+    Dashboard ke liye saare pending POs aur Bills nikaalo.
+    """
+    # 1. Pending Bills (Draft, Submitted, Approved)
+    pending_bills = BillEntry.objects.filter(
+        is_deleted=False, 
+        status__in=['draft', 'submitted', 'approved']
+    ).order_by('-created_at')[:5]
+
+    # 2. Pending POs (Draft, Submitted)
+    pending_pos = PurchaseOrder.objects.filter(
+        is_deleted=False,
+        status__in=['draft', 'submitted']
+    ).order_by('-created_at')[:5]
+
+    from bills.api.serializers import BillEntryListSerializer
+    from purchase.api.serializers import PurchaseOrderListSerializer
+
+    return Response({
+        'pending_bills': {
+            'count': BillEntry.objects.filter(is_deleted=False, status__in=['draft', 'submitted', 'approved']).count(),
+            'results': BillEntryListSerializer(pending_bills, many=True).data
+        },
+        'pending_pos': {
+            'count': PurchaseOrder.objects.filter(is_deleted=False, status__in=['draft', 'submitted']).count(),
+            'results': PurchaseOrderListSerializer(pending_pos, many=True).data
+        }
     })

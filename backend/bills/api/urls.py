@@ -13,4 +13,6 @@ urlpatterns = [
 
     # Detail
     path('bills/<int:pk>/', views.bill_entry_detail, name='detail'),
+    # Pending Approvals
+    path('pending-approvals/', views.pending_approvals, name='pending-approvals'),
 ]

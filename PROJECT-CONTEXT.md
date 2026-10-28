@@ -556,3 +556,15 @@ notepad PROJECT-CONTEXT.md
 
 ### Status: 100% Code Ready for Migration
 - [ ] Kal naye laptop (i9, 32GB RAM) me project ko transfer karna hai.
+## ✅ Aaj Ka Kaam (28 Oct 2026 - Part 3)
+
+### Audit Trail Module (Backend Complete)
+- [x] Naya app `audit_logs` banaya.
+- [x] `AuditLog` model banaya (tracking Create, Update, Delete actions with user info).
+- [x] `CurrentUserMiddleware` banaya taaki system ko pata chale kisne action liya.
+- [x] Django Signals (`signals.py`) add kiye taaki Project, Vendor, PO, aur Bill ka data auto-track ho.
+- [x] Django Admin (Unfold) me Audit Logs ko read-only register kiya.
+
+### Kal Ka Plan (Pending)
+- [ ] Frontend me "Activity Log" page banana.
+- [ ] Leave & Attendance Module shuru karna.
