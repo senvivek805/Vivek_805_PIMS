@@ -72,7 +72,6 @@ export default function ImportPage() {
       
       employees: "employee_code,reference_no,full_name,designation,department,employee_type,phone,email,address,joining_date,leaving_date,assigned_project_code,project_role,manpower_type,bank_name,account_number,ifsc_code,bank_branch,account_type\nEMP-001,REF-001,Ramesh Kumar,Assistant Professor,Civil,staff,9876543210,ramesh@test.com,Varanasi,2024-01-01,,TEST-PRJ-001,Research Associate,full_time,SBI,1234567890,SBIN0001234,Lanka Branch,savings",
       
-      bills: "bill_no,bill_date,project_code,vendor_code,po_number,budget_head_code,recipient_name,particulars,bill_amount,cgst_rate,sgst_rate,igst_rate,tds_gst_rate,tds_income_tax_rate,penalty,pbg_security,other_charges,status\nBILL-001,2024-10-25,TEST-PRJ-001,VND-000001,PO-001,,Sample Recipient,Sample particulars,20000,9,9,0,2,10,0,0,800,approved"
     };
 
     const csvContent = templates[importType];
@@ -146,7 +145,6 @@ export default function ImportPage() {
               <div className="space-y-2">
                 {[
                   { id: "projects", label: "Projects" },
-                  { id: "bills", label: "Bills (Form 5)" },
                   { id: "vendors", label: "Vendors" },
                   { id: "materials", label: "Materials" },
                   { id: "employees", label: "Employees" },
