@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'service_completion',
     'documents',
     'audit_logs',
+    "leaves",
 ]
 
 # ============================================

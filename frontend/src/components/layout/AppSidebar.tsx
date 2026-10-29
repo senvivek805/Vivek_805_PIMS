@@ -26,11 +26,14 @@ import {
   FolderOpen,
   FileSpreadsheet,
   Undo2,
-  UserCog, // 👇 Naya icon add kiya
+  UserCog,
   Upload,
   CheckCircle2,
+  History,
+  CalendarDays,
+  UserCheck, 
 } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions"; // 👇 Hook import kiya
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface AppSidebarProps {
   isOpen?: boolean;
@@ -66,6 +69,8 @@ const menuItems: MenuItem[] = [
   { href: "/budget/overview", label: "Budget Overview", icon: Target },
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/employees", label: "Employees", icon: Users },
+  { href: "/leaves", label: "Leave Management", icon: CalendarDays },
+  { href: "/attendance", label: "Attendance", icon: UserCheck },
   {
     href: "/materials",
     label: "Materials",
@@ -82,10 +87,11 @@ const menuItems: MenuItem[] = [
   { href: "/services", label: "Service Completions", icon: FileCheck },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/uc", label: "Utilization Cert. (UC)", icon: FileSpreadsheet },
-  { href: "/users", label: "User Management", icon: UserCog }, // 👇 Naya Link
+  { href: "/users", label: "User Management", icon: UserCog },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/import", label: "Import Data", icon: Upload },
   { href: "/approvals", label: "Approvals", icon: CheckCircle2 },
+  { href: "/activity-logs", label: "Activity Logs", icon: History },
 ];
 
 export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
@@ -95,12 +101,17 @@ export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
-  // 👇 Permissions Hook (To hide User Management from non-admins)
-  const { isAdmin } = usePermissions();
+  // 👇 Permissions Hook
+  const { isAdmin, isManager } = usePermissions();
 
   // 👇 Filter menu based on role
   const filteredMenuItems = menuItems.filter((item) => {
+    // User Management — sirf Admin
     if (item.href === "/users" && !isAdmin) return false;
+
+    // Activity Logs — sirf Admin + Manager
+    if (item.href === "/activity-logs" && !(isAdmin || isManager)) return false;
+
     return true;
   });
 
@@ -116,7 +127,7 @@ export function AppSidebar({ isOpen = true, onClose }: AppSidebarProps) {
         }
       }
     });
-  }, [pathname, isAdmin]);
+  }, [pathname, isAdmin, isManager]);
 
   // ============================================
   // TOGGLE EXPAND

@@ -38,6 +38,8 @@ urlpatterns = [
     path('api/', include('bills.api.urls')),
     path('api/', include('service_completion.api.urls')),
     path('api/', include('documents.api.urls')),
+    path('api/', include('audit_logs.api.urls')),
+    path('api/', include('leaves.api.urls')),
 ]
 # Media files serve karne ke liye (Development me)
 if settings.DEBUG:

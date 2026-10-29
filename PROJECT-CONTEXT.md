@@ -568,3 +568,25 @@ notepad PROJECT-CONTEXT.md
 ### Kal Ka Plan (Pending)
 - [ ] Frontend me "Activity Log" page banana.
 - [ ] Leave & Attendance Module shuru karna.
+## ✅ Aaj Ka Kaam (29 Oct 2026)
+
+### Audit Trail (Activity Logs) - Complete
+- [x] Backend API banayi (`/api/audit-logs/`) with Serializers, Views, URLs.
+- [x] Frontend me "Activity Logs" page banaya (List with Old vs New changes).
+- [x] **RBAC Security:** Backend me permission lagayi taaki sirf Admin & Manager hi API access kar sakein.
+- [x] Sidebar me link add kiya (jo sirf Admin/Manager ko dikhta hai).
+
+### Leave & Attendance Module (Phase 1 - Basic Setup)
+- [x] Naya app `leaves` banaya.
+- [x] Models banaye: `LeaveType`, `LeavePolicy` (Designation wise rules), `LeaveBalance`, `LeaveApplication`, `Attendance`.
+- [x] Django Admin (Unfold) me register kiya.
+- [x] Leave Policies setup ki (Image ke hisaab se: CL, EL, SL rules).
+- [x] Backend API banayi (Apply, List, Approve/Reject, Attendance).
+- [x] Frontend API Client (`leaves.ts`) banaya.
+- [x] Frontend Pages banaye: "Leave List" (with Approve/Reject) aur "Apply Leave" form.
+- [x] Basic Attendance page banaya.
+- [x] Sidebar me "Leave Management" aur "Attendance" ka link add kiya.
+
+### ⚠️ Kal Ka Plan (Pending)
+- [ ] **Leave Balance Calculation Fix:** Joining date ke hisaab se year calculate karna, CL/EL pro-rata logic, aur EL ke liye 20 days attendance condition ko fix/test karna (current logic me kuch data mismatch aa raha hai).
+- [ ] Frontend me "My Leave Balances" ka dashboard/cards banana.
