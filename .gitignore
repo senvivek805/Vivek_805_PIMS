@@ -77,3 +77,5 @@ Thumbs.db
 *.bak
 *.tmp
 *.log
+# Docker data (local only, 6GB)
+Docker/
