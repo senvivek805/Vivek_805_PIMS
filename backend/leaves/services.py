@@ -1,8 +1,44 @@
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
+
+from django.db.models import Sum, Case, When, Value, DecimalField
+from django.db.models.functions import Coalesce
+
 from .models import LeavePolicy, LeaveBalance, Attendance, LeaveApplication
 from employees.models import Employee
+
+
+# Statuses that count toward attendance days
+ATTENDANCE_STATUSES = ['present', 'wfh', 'half_day']
+
+
+def _attendance_days(employee, start_date, end_date):
+    """
+    Return effective attendance days in [start_date, end_date].
+      present  -> 1.0 day
+      wfh      -> 1.0 day
+      half_day -> 0.5 day
+      others   -> 0
+    """
+    result = Attendance.objects.filter(
+        employee=employee,
+        date__range=[start_date, end_date],
+        status__in=ATTENDANCE_STATUSES,
+    ).aggregate(
+        total=Coalesce(
+            Sum(
+                Case(
+                    When(status='half_day', then=Value(Decimal('0.5'))),
+                    default=Value(Decimal('1.0')),
+                    output_field=DecimalField(max_digits=6, decimal_places=1),
+                )
+            ),
+            Value(Decimal('0.0'), output_field=DecimalField(max_digits=6, decimal_places=1)),
+        )
+    )
+    return result['total'] or Decimal('0.0')
+
 
 def calculate_employee_leave_balances(employee_id):
     try:
@@ -13,68 +49,66 @@ def calculate_employee_leave_balances(employee_id):
     join_date = employee.joining_date
     today = date.today()
 
-    if today < join_date:
-        return # Abhi join nahi kiya
+    if not join_date or today < join_date:
+        return
 
-    # 1. Calculate Leave Year (Based on Joining Date)
-    # Example: Joined 15 Aug 2023 -> Year 1: 15 Aug 2023 to 14 Aug 2024
+    # ---- 1. Leave year: anniversary-based (starts on joining date) ----
     delta = relativedelta(today, join_date)
     years_passed = delta.years
     year_start = join_date + relativedelta(years=years_passed)
     year_end = year_start + relativedelta(years=1) - timedelta(days=1)
 
-    # 2. Get Policies for this designation
-    policies = LeavePolicy.objects.filter(designation=employee.designation, is_active=True)
+    # ---- 2. Policies for this designation ----
+    policies = LeavePolicy.objects.filter(
+        designation=employee.designation,
+        is_active=True,
+    )
 
     for policy in policies:
-        # Skip if NA (0 amount)
         if policy.accrual_amount == 0:
             continue
 
-        # Total accrued for this year
-        accrued = Decimal('0.00')
+        accrued = Decimal('0.0')
 
+        # ---- 3a. Yearly accrual (e.g., CL = 8 per year) ----
         if policy.accrual_type == 'yearly':
-            # CL (8 per year) -> Pro-rata calculation if it's the first year
-            # For simplicity, we give full amount if year is active
-            # But to handle pro-rata based on joining date in the middle of a standard year:
-            # (As user mentioned, year starts from joining date, so it's already 1 full year)
+            # Anniversary-based year is a full year, so full amount.
             accrued = policy.accrual_amount
 
+        # ---- 3b. Monthly accrual (e.g., EL = 2.5/month, min 20 attendance) ----
         elif policy.accrual_type == 'monthly':
-            # EL (2.5 per month with 20 days attendance condition)
-            # Count months completed in this leave year up to today
-            current_month_date = year_start
-            while current_month_date <= today and current_month_date <= year_end:
-                # Check attendance for this month (current_month_date to end of month)
-                month_start = current_month_date
-                month_end = month_start + relativedelta(months=1) - timedelta(days=1)
-                if month_end > today:
-                    month_end = today # Current month, only check up to today
+            cursor = year_start
+            while cursor <= min(today, year_end):
+                cal_start = cursor.replace(day=1)
+                next_month = cal_start + relativedelta(months=1)
+                cal_end = next_month - timedelta(days=1)
 
-                # Count present days
-                present_days = Attendance.objects.filter(
-                    employee=employee, 
-                    date__range=[month_start, month_end], 
-                    status__in=['present', 'wfh', 'half_day'] # Assuming these count as present
-                ).count()
+                # Credit EL only for COMPLETED calendar months.
+                # Avoids partial-month inflation.
+                if cal_end < today:
+                    present_days = _attendance_days(employee, cal_start, cal_end)
+                    if present_days >= policy.min_attendance_days:
+                        accrued += policy.accrual_amount
 
-                # Condition: Min 20 days attendance
-                if present_days >= policy.min_attendance_days:
-                    accrued += policy.accrual_amount
+                cursor = next_month
 
-                current_month_date += relativedelta(months=1)
-
-        # 3. Calculate Used Days (Approved leaves only)
-        used = LeaveApplication.objects.filter(
+        # ---- 4. Used days (approved leaves inside this leave year) ----
+        # Count overlap so boundary-crossing leaves aren't lost.
+        used = Decimal('0.0')
+        approved = LeaveApplication.objects.filter(
             employee=employee,
             leave_type=policy.leave_type,
             status='approved',
-            from_date__gte=year_start,
-            to_date__lte=year_end
-        ).aggregate(total=models.Sum('total_days'))['total'] or Decimal('0.00')
+            from_date__lte=year_end,
+            to_date__gte=year_start,
+        )
+        for leave in approved:
+            eff_start = max(leave.from_date, year_start)
+            eff_end = min(leave.to_date, year_end)
+            if eff_end >= eff_start:
+                used += Decimal(str((eff_end - eff_start).days + 1))
 
-        # 4. Update or Create LeaveBalance
+        # ---- 5. Upsert LeaveBalance ----
         LeaveBalance.objects.update_or_create(
             employee=employee,
             leave_type=policy.leave_type,
@@ -82,6 +116,6 @@ def calculate_employee_leave_balances(employee_id):
             defaults={
                 'year_end_date': year_end,
                 'total_accrued': accrued,
-                'used_days': used
+                'used_days': used,
             }
         )

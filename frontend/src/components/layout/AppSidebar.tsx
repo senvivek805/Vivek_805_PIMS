@@ -69,7 +69,15 @@ const menuItems: MenuItem[] = [
   { href: "/budget/overview", label: "Budget Overview", icon: Target },
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/employees", label: "Employees", icon: Users },
-  { href: "/leaves", label: "Leave Management", icon: CalendarDays },
+  {
+    href: "/leaves",
+    label: "Leave Management",
+    icon: CalendarDays,
+    children: [
+      { href: "/leaves", label: "Leave Applications", icon: CalendarDays },
+      { href: "/leaves/balances", label: "My Leave Balances", icon: CalendarDays },
+    ],
+  },
   { href: "/attendance", label: "Attendance", icon: UserCheck },
   {
     href: "/materials",
